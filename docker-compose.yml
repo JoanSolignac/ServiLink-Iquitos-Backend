@@ -1,0 +1,17 @@
+services:
+  postgres:
+    container_name: servilink-postgres
+    image: postgres:17-alpine
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: servilink
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./docker/database-init/init.sql:/docker-entrypoint-initdb.d/init.sql
+
+volumes:
+  postgres_data:
