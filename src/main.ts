@@ -21,7 +21,7 @@ async function bootstrap(): Promise<void> {
     }),
   );
 
-  const PORT = configService.getOrThrow<string>('app.port');
+  const PORT = configService.getOrThrow<number>('app.port');
 
   await app.listen(PORT);
 
