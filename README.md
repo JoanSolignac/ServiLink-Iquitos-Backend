@@ -18,7 +18,8 @@ El proyecto ha sido desarrollado sobre las siguientes tecnologías y herramienta
 - **Testing:** Jest 30, Supertest
 - **Linting y Formato:** ESLint 9, Prettier 3
 - **Gestor de Paquetes:** Yarn
-- **Contenedores:** Docker Engine & Docker Compose
+- **Base de datos:** PostgreSQL
+- **Contenedores:** Docker Engine & Docker Compose (opcional)
 
 ## Requisitos Previos
 
@@ -26,7 +27,8 @@ Para la ejecución local del proyecto, el entorno de desarrollo deberá contar c
 
 - **Node.js:** versión 22.22 LTS.
 - **Yarn:** compatible con la versión de Node.js instalada.
-- **Docker Engine:** requerido para la construcción de imágenes y la orquestación de servicios de desarrollo.
+- **PostgreSQL:** puedes usar Docker Compose (incluido en el proyecto) o una instalación local/externa de PostgreSQL.
+- **Docker Engine:** requerido solo si deseas levantar los servicios mediante contenedores.
 
 ## Instalación de Dependencias
 
@@ -40,9 +42,12 @@ El sistema de configuración del proyecto está diseñado para cargar variables 
 
 1. Copiar el archivo `.env.example`.
 2. Renombrar las copias a `.env.development` y `.env.test`.
-3. Modificar los valores de las variables (`PORT`, `GLOBAL_PREFIX`, etc.) en cada archivo de acuerdo con el entorno objetivo.
+3. Modificar los valores de las variables (`PORT`, `GLOBAL_PREFIX`, etc.) según el entorno objetivo.
+4. Verificar que `GLOBAL_PREFIX` cumpla el formato permitido (ej. `api/v1`, no `api/V1`).
 
 **Fundamento técnico:** El módulo `ConfigModule` de NestJS carga automáticamente el archivo `.env` cuyo nombre corresponda al valor de la variable `NODE_ENV`. El script `start:dev` establece `NODE_ENV=development`, por lo que la aplicación buscará el archivo `.env.development`. De forma análoga, el script de pruebas establece `NODE_ENV=test`, requiriendo la presencia de `.env.test`. La ausencia de estos archivos provocará un fallo en el arranque de la aplicación debido a la validación del esquema Joi.
+
+> **Nota sobre `NODE_ENV`:** Es establecida automáticamente por los scripts npm (`start:dev` → `development`, `test` → `test`, `start:prod` → `production`). No requiere declaración manual en el archivo `.env`.
 
 ## Ejecución del Proyecto
 
@@ -59,26 +64,74 @@ yarn test
 yarn start:prod
 ```
 
-## Docker Compose
+## Docker Compose (opcional)
 
-Para levantar los servicios de desarrollo mediante contenedores, ejecutar:
+Si prefieres levantar los servicios de desarrollo mediante contenedores, ejecuta:
 
 ```bash
 docker compose up -d
 ```
 
-Este comando inicializará los servicios definidos en el archivo `docker-compose.yml` en segundo plano.
+| Servicio | Imagen | Puerto expuesto | Descripción |
+|---|---|---|---|
+| `postgres` | `postgres:17-alpine` | `5432` | Base de datos PostgreSQL para desarrollo local |
+
+> **Alternativa:** También puedes instalar PostgreSQL directamente en tu sistema operativo o usar una instancia remota, siempre que configures los datos de conexión correspondientes.
 
 ## Variables de Entorno
 
-El proyecto utiliza el siguiente conjunto de variables de entorno, las cuales son validadas estrictamente mediante un esquema Joi al momento del arranque:
+El proyecto valida estrictamente las variables de entorno mediante un esquema Joi al momento del arranque.
 
-| Variable        | Descripción                           | Ejemplo         | Requerida |
-|-----------------|---------------------------------------|-----------------|-----------|
-| `NODE_ENV`      | Modo de ejecución de la aplicación    | `development`   | Sí        |
-| `PORT`          | Puerto de escucha del servidor        | `3001`          | Sí        |
-| `GLOBAL_PREFIX` | Prefijo base para las rutas de la API | `api/v1`        | Sí        |
+| Variable | Descripción | Ejemplo | Requerida en `.env` |
+|---|---|---|---|
+| `PORT` | Puerto de escucha del servidor | `3001` | Sí |
+| `GLOBAL_PREFIX` | Prefijo base para las rutas de la API. Solo minúsculas, números y guiones. Separadores con `/`. No iniciar ni terminar con `/`. | `api/v1` | Sí |
 
-## Arquitectura
+> **Atención:** Valores como `api/V1` (con mayúscula) harán fallar la validación del esquema Joi.
 
-El proyecto se desarrolla bajo el paradigma de **Arquitectura Hexagonal**, aplicando los principios de **Clean Code**. Esta metodología garantiza la separación de responsabilidades entre las capas de dominio, aplicación e infraestructura, asegurando la testabilidad, escalabilidad y mantenibilidad del código a largo plazo.
+> **Nota sobre `NODE_ENV`:** Es establecida automáticamente por los scripts npm (`start:dev` → `development`, `test` → `test`, `start:prod` → `production`). No requiere declaración manual en el archivo `.env`.
+
+## Arquitectura y Convenciones
+
+El proyecto sigue el paradigma de **Arquitectura Hexagonal**, aplicando principios de **Domain-Driven Design (DDD)** y **Clean Code**. La estructura garantiza que la capa de dominio sea independiente de frameworks, librerías y detalles de infraestructura.
+
+### Capas del proyecto
+
+| Capa | Responsabilidad | Ubicación típica |
+|---|---|---|
+| **Domain** | Reglas de negocio puras: entidades, value objects, puertos (interfaces/abstractas), excepciones de dominio, domain services. | `*/domain/*` |
+| **Application** | Orquestación de casos de uso, servicios de aplicación, coordinación entre dominio e infraestructura. | `*/application/*` |
+| **Infrastructure** | Adaptadores concretos: controladores, repositorios (implementaciones), ORM/DB, DTOs, generadores, configuración externa. | `*/infrastructure/*` |
+
+> **Nota sobre DTOs:** Los DTOs residen en `infrastructure/` porque dependen de librerías de framework para validación y serialización.
+
+### Convenciones de nomenclatura
+
+| Concepto | Convención | Ejemplo |
+|---|---|---|
+| Value Object | `*.value-object.ts` | `order-id.value-object.ts` |
+| Entidad | `*.entity.ts` | `order.entity.ts` |
+| Puerto / Interfaz abstracta | `*.abstract.ts` | `payment-gateway.abstract.ts` |
+| Excepción de dominio | `*.exception.ts` | `insufficient-stock.exception.ts` |
+| Enum de errores | `*.enum.ts` | `order-error-code.enum.ts` |
+| Adaptador / Implementación | Descriptivo del motor/librería | `stripe-payment.adapter.ts`, `postgres-order.repository.ts` |
+| Configuración | `*.config.ts` | `database.config.ts` |
+| Schema de validación | `validation.schema.ts` o `*.schema.ts` | `env-validation.schema.ts` |
+
+## Módulos del Proyecto
+
+Cada módulo del sistema representa un bounded context o un conjunto de responsabilidades transversales. Todos siguen la misma estructura de capas descrita en la sección de Arquitectura.
+
+### Módulos transversales
+
+Son aquellos que proporcionan building blocks base reutilizables por cualquier bounded context. No contienen reglas de negocio específicas de un dominio, sino utilidades técnicas y de infraestructura compartida.
+
+| Módulo | Responsabilidad |
+|---|---|
+| `shared` | Utilidades de identidad (generación y validación de IDs), configuración de entorno y excepciones base de dominio. Importado globalmente en `AppModule`. |
+
+### Módulos de dominio
+
+Representan bounded contexts específicos del negocio. Cada uno encapsula su propio modelo de dominio, casos de uso y adaptadores de infraestructura.
+
+> **Nota:** A medida que se añadan nuevos bounded contexts al sistema, se documentarán en esta sección con su propósito y dependencias principales.
