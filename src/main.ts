@@ -8,7 +8,7 @@ async function bootstrap(): Promise<void> {
 
   const configService = app.get(ConfigService);
 
-  app.setGlobalPrefix(configService.getOrThrow<string>('app.globalPrefix'));
+  app.setGlobalPrefix(configService.getOrThrow<string>('GLOBAL_PREFIX'));
 
   app.useGlobalPipes(
     new ValidationPipe({
@@ -21,7 +21,7 @@ async function bootstrap(): Promise<void> {
     }),
   );
 
-  const PORT = configService.getOrThrow<number>('app.port');
+  const PORT = configService.getOrThrow<number>('PORT');
 
   await app.listen(PORT);
 
