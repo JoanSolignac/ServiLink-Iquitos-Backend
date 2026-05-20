@@ -15,6 +15,7 @@ El proyecto ha sido desarrollado sobre las siguientes tecnologías y herramienta
 - **Lenguaje:** TypeScript 5.7
 - **Validación de Datos:** class-validator, class-transformer, Joi
 - **Gestión de Configuración:** @nestjs/config
+- **ORM:** Prisma
 - **Testing:** Jest 30, Supertest
 - **Linting y Formato:** ESLint 9, Prettier 3
 - **Gestor de Paquetes:** Yarn
@@ -42,7 +43,7 @@ El sistema de configuración del proyecto está diseñado para cargar variables 
 
 1. Copiar el archivo `.env.example`.
 2. Renombrar las copias a `.env.development` y `.env.test`.
-3. Modificar los valores de las variables (`PORT`, `GLOBAL_PREFIX`, etc.) según el entorno objetivo.
+3. Modificar los valores de las variables (`PORT`, `GLOBAL_PREFIX`, `DATABASE_URL`, etc.) según el entorno objetivo.
 4. Verificar que `GLOBAL_PREFIX` cumpla el formato permitido (ej. `api/v1`, no `api/V1`).
 
 **Fundamento técnico:** El módulo `ConfigModule` de NestJS carga automáticamente el archivo `.env` cuyo nombre corresponda al valor de la variable `NODE_ENV`. El script `start:dev` establece `NODE_ENV=development`, por lo que la aplicación buscará el archivo `.env.development`. De forma análoga, el script de pruebas establece `NODE_ENV=test`, requiriendo la presencia de `.env.test`. La ausencia de estos archivos provocará un fallo en el arranque de la aplicación debido a la validación del esquema Joi.
@@ -78,6 +79,35 @@ docker compose up -d
 
 > **Alternativa:** También puedes instalar PostgreSQL directamente en tu sistema operativo o usar una instancia remota, siempre que configures los datos de conexión correspondientes.
 
+> **Nota:** Si usas Docker Compose, el valor de `DATABASE_URL` en tu `.env` debe apuntar al host `localhost` (no `postgres` del contenedor), ya que la aplicación se ejecuta fuera del contenedor.
+
+## Comandos de Prisma
+
+Los siguientes comandos están disponibles para la gestión de la base de datos:
+
+```bash
+# Crear una migración (entorno de desarrollo)
+yarn prisma:dev:migrate
+
+# Desplegar migraciones (entorno de desarrollo)
+yarn prisma:dev:deploy
+
+# Resetear la base de datos (entorno de desarrollo)
+yarn prisma:dev:reset
+
+# Abrir Prisma Studio (entorno de desarrollo)
+yarn prisma:dev:studio
+
+# Crear una migración (entorno de test)
+yarn prisma:test:migrate
+
+# Desplegar migraciones (entorno de test)
+yarn prisma:test:deploy
+
+# Ejecutar seed (entorno de desarrollo)
+yarn db:seed:dev
+```
+
 ## Variables de Entorno
 
 El proyecto valida estrictamente las variables de entorno mediante un esquema Joi al momento del arranque.
@@ -86,6 +116,7 @@ El proyecto valida estrictamente las variables de entorno mediante un esquema Jo
 |---|---|---|---|
 | `PORT` | Puerto de escucha del servidor | `3001` | Sí |
 | `GLOBAL_PREFIX` | Prefijo base para las rutas de la API. Solo minúsculas, números y guiones. Separadores con `/`. No iniciar ni terminar con `/`. | `api/v1` | Sí |
+| `DATABASE_URL` | Cadena de conexión a PostgreSQL con esquema `postgresql://`. | `postgresql://postgres:postgres@localhost:5432/servilink` | Sí |
 
 > **Atención:** Valores como `api/V1` (con mayúscula) harán fallar la validación del esquema Joi.
 
@@ -128,7 +159,8 @@ Son aquellos que proporcionan building blocks base reutilizables por cualquier b
 
 | Módulo | Responsabilidad |
 |---|---|
-| `shared` | Utilidades de identidad (generación y validación de IDs), configuración de entorno y excepciones base de dominio. Importado globalmente en `AppModule`. |
+| `IdModule` | Generación y validación de IDs UUID v7. Módulo global (`@Global()`), importado en `AppModule`. |
+| `PrismaModule` | Conexión a PostgreSQL via Prisma ORM. Módulo global (`@Global()`), importado en `AppModule`. |
 
 ### Módulos de dominio
 
