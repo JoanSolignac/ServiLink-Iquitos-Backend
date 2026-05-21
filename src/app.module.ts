@@ -1,8 +1,8 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
-import { validationSchema } from './shared/infrastructure/config/schemas/validation.schema';
-import { IdModule } from './shared/infrastructure/id/id.module';
-import { PrismaModule } from './shared/infrastructure/persistence/prisma/prisma.module';
+import { validationSchema } from './shared/config/schemas/validation.schema';
+import { UuidModule } from './uuid/uuid.module';
+import { PrismaModule } from './prisma/prisma.module';
 
 @Module({
   imports: [
@@ -12,7 +12,7 @@ import { PrismaModule } from './shared/infrastructure/persistence/prisma/prisma.
       ignoreEnvFile: process.env.NODE_ENV === 'production',
       envFilePath: `.env.${process.env.NODE_ENV}`,
     }),
-    IdModule,
+    UuidModule,
     PrismaModule,
   ],
 })

@@ -159,7 +159,7 @@ Son aquellos que proporcionan building blocks base reutilizables por cualquier b
 
 | Módulo | Responsabilidad |
 |---|---|
-| `IdModule` | Generación y validación de IDs UUID v7. Módulo global (`@Global()`), importado en `AppModule`. |
+| `UuidModule` | Generación y validación de IDs UUID v7. Módulo global (`@Global()`), importado en `AppModule`. |
 | `PrismaModule` | Conexión a PostgreSQL via Prisma ORM. Módulo global (`@Global()`), importado en `AppModule`. |
 
 ### Módulos de dominio

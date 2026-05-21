@@ -5,13 +5,16 @@ export class DomainId {
   private static readonly UUID_V7_REGEX =
     /^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
-  private constructor(private readonly value: string) {}
+  protected constructor(private readonly value: string) {}
 
-  static from(value: string): DomainId {
-    const normalizedValue = this.normalize(value);
-    this.validateRequired(normalizedValue);
-    this.validateFormat(normalizedValue);
-    return new DomainId(normalizedValue);
+  static from<T extends DomainId>(
+    this: new (value: string) => T,
+    value: string,
+  ): DomainId {
+    const normalizedValue = DomainId.normalize(value);
+    DomainId.validateRequired(normalizedValue);
+    DomainId.validateFormat(normalizedValue);
+    return new this(normalizedValue);
   }
 
   private static normalize(value: string): string {

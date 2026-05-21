@@ -1,5 +1,5 @@
 import { DomainException } from './domain.exception';
-import { DomainErrorCode } from './domain-error-code.enum';
+import { DomainErrorCode } from '../enums/domain-error-code.enum';
 
 export class DomainIdRequiredException extends DomainException {
   constructor() {
