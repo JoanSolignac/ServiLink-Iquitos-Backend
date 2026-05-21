@@ -10,7 +10,7 @@ export class DomainId {
   static from<T extends DomainId>(
     this: new (value: string) => T,
     value: string,
-  ): DomainId {
+  ): T {
     const normalizedValue = DomainId.normalize(value);
     DomainId.validateRequired(normalizedValue);
     DomainId.validateFormat(normalizedValue);
