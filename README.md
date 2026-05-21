@@ -104,7 +104,7 @@ yarn prisma:test:migrate
 # Desplegar migraciones (entorno de test)
 yarn prisma:test:deploy
 
-# Ejecutar seed (entorno de desarrollo)
+# Ejecutar seed (entorno de desarrollo - no disponible por el momento)
 yarn db:seed:dev
 ```
 
@@ -136,6 +136,8 @@ El proyecto sigue el paradigma de **Arquitectura Hexagonal**, aplicando principi
 
 > **Nota sobre DTOs:** Los DTOs residen en `infrastructure/` porque dependen de librerías de framework para validación y serialización.
 
+> **Nota sobre `shared/`:** El módulo transversal `shared/` no sigue la estructura de capas `domain/application/infrastructure`. En su lugar, organiza su contenido por tipo: `abstractions/` (puertos), `value-objects/`, `exceptions/`, `enums/` y `config/`. Los adaptadores concretos residen fuera de `shared/` (ej. `uuid/`, `prisma/`).
+
 ### Convenciones de nomenclatura
 
 | Concepto | Convención | Ejemplo |
@@ -144,8 +146,11 @@ El proyecto sigue el paradigma de **Arquitectura Hexagonal**, aplicando principi
 | Entidad | `*.entity.ts` | `order.entity.ts` |
 | Puerto / Interfaz abstracta | `*.abstract.ts` | `payment-gateway.abstract.ts` |
 | Excepción de dominio | `*.exception.ts` | `insufficient-stock.exception.ts` |
-| Enum de errores | `*.enum.ts` | `order-error-code.enum.ts` |
+| Enum de errores | `*.enum.ts` | `domain-error-code.enum.ts` |
 | Adaptador / Implementación | Descriptivo del motor/librería | `stripe-payment.adapter.ts`, `postgres-order.repository.ts` |
+| Módulo NestJS | `*.module.ts` | `uuid.module.ts`, `prisma.module.ts` |
+| Servicio NestJS | `*.service.ts` | `prisma.service.ts` |
+| Transaction Manager | `*-transaction-manager.ts` | `prisma-transaction-manager.ts` |
 | Configuración | `*.config.ts` | `database.config.ts` |
 | Schema de validación | `validation.schema.ts` o `*.schema.ts` | `env-validation.schema.ts` |
 
@@ -159,8 +164,8 @@ Son aquellos que proporcionan building blocks base reutilizables por cualquier b
 
 | Módulo | Responsabilidad |
 |---|---|
-| `UuidModule` | Generación y validación de IDs UUID v7. Módulo global (`@Global()`), importado en `AppModule`. |
-| `PrismaModule` | Conexión a PostgreSQL via Prisma ORM. Módulo global (`@Global()`), importado en `AppModule`. |
+| `UuidModule` | Generación de IDs UUID v7. Expone el puerto `IdGenerator`. Módulo global (`@Global()`), importado en `AppModule`. |
+| `PrismaModule` | Conexión a PostgreSQL via Prisma ORM y gestión de transacciones. Expone `PrismaService` y el puerto `TransactionManager`. Módulo global (`@Global()`), importado en `AppModule`. |
 
 ### Módulos de dominio
 
