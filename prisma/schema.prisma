@@ -10,3 +10,27 @@ generator client {
 datasource db {
   provider = "postgresql"
 }
+
+model User {
+  id     String     @id
+  email  String     @unique
+  role   UserRole
+  status UserStatus
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("users")
+}
+
+enum UserRole {
+  USER
+  MODERATOR
+  ADMINISTRATOR
+}
+
+enum UserStatus {
+  ACTIVE
+  INACTIVE
+  SUSPENDED
+}
