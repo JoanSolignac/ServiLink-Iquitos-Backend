@@ -103,9 +103,6 @@ yarn prisma:test:migrate
 
 # Desplegar migraciones (entorno de test)
 yarn prisma:test:deploy
-
-# Ejecutar seed (entorno de desarrollo - no disponible por el momento)
-yarn db:seed:dev
 ```
 
 ## Variables de Entorno
@@ -114,7 +111,7 @@ El proyecto valida estrictamente las variables de entorno mediante un esquema Jo
 
 | Variable | Descripción | Ejemplo | Requerida en `.env` |
 |---|---|---|---|
-| `PORT` | Puerto de escucha del servidor | `3001` | Sí |
+| `PORT` | Puerto de escucha del servidor | `3000` | Sí |
 | `GLOBAL_PREFIX` | Prefijo base para las rutas de la API. Solo minúsculas, números y guiones. Separadores con `/`. No iniciar ni terminar con `/`. | `api/v1` | Sí |
 | `DATABASE_URL` | Cadena de conexión a PostgreSQL con esquema `postgresql://`. | `postgresql://postgres:postgres@localhost:5432/servilink` | Sí |
 
@@ -132,9 +129,10 @@ El proyecto sigue el paradigma de **Arquitectura Hexagonal**, aplicando principi
 |---|---|---|
 | **Domain** | Reglas de negocio puras: entidades, value objects, puertos (interfaces/abstractas), excepciones de dominio, domain services. | `*/domain/*` |
 | **Application** | Orquestación de casos de uso, servicios de aplicación, coordinación entre dominio e infraestructura. | `*/application/*` |
-| **Infrastructure** | Adaptadores concretos: controladores, repositorios (implementaciones), ORM/DB, DTOs, generadores, configuración externa. | `*/infrastructure/*` |
+| **Infrastructure** | Adaptadores concretos: repositorios (implementaciones), ORM/DB, mappers, generadores, configuración externa. | `*/infrastructure/*` |
+| **Presentation** | Punto de entrada HTTP: controladores, DTOs (request/response), presenters. Dependen de librerías de framework para validación y serialización. | `*/presentation/*` |
 
-> **Nota sobre DTOs:** Los DTOs residen en `infrastructure/` porque dependen de librerías de framework para validación y serialización.
+> **Nota sobre DTOs:** Los DTOs residen en `presentation/dto/` porque dependen de librerías de framework para validación y serialización, y pertenecen a la capa de entrada del sistema.
 
 > **Nota sobre `shared/`:** El módulo transversal `shared/` no sigue la estructura de capas `domain/application/infrastructure`. En su lugar, organiza su contenido por tipo: `abstractions/` (puertos), `value-objects/`, `exceptions/`, `enums/` y `config/`. Los adaptadores concretos residen fuera de `shared/` (ej. `uuid/`, `prisma/`).
 
@@ -147,10 +145,15 @@ El proyecto sigue el paradigma de **Arquitectura Hexagonal**, aplicando principi
 | Puerto / Interfaz abstracta | `*.abstract.ts` | `payment-gateway.abstract.ts` |
 | Excepción de dominio | `*.exception.ts` | `insufficient-stock.exception.ts` |
 | Enum de errores | `*.enum.ts` | `domain-error-code.enum.ts` |
-| Adaptador / Implementación | Descriptivo del motor/librería | `stripe-payment.adapter.ts`, `postgres-order.repository.ts` |
+| Adaptador / Implementación | Descriptivo del motor/librería | `stripe-payment.adapter.ts`, `prisma-user.repository.ts` |
+| Mapper | `*.mapper.ts` | `prisma-user.mapper.ts` |
 | Módulo NestJS | `*.module.ts` | `uuid.module.ts`, `prisma.module.ts` |
 | Servicio NestJS | `*.service.ts` | `prisma.service.ts` |
 | Transaction Manager | `*-transaction-manager.ts` | `prisma-transaction-manager.ts` |
+| DTO de request | `*.request.dto.ts` | `change-user-role.request.dto.ts` |
+| DTO de response | `*.response.dto.ts` | `user.response.dto.ts` |
+| Presenter | `*.presenter.ts` | `user.presenter.ts` |
+| Controlador | `*.controller.ts` | `user.controller.ts` |
 | Configuración | `*.config.ts` | `database.config.ts` |
 | Schema de validación | `validation.schema.ts` o `*.schema.ts` | `env-validation.schema.ts` |
 
@@ -170,5 +173,16 @@ Son aquellos que proporcionan building blocks base reutilizables por cualquier b
 ### Módulos de dominio
 
 Representan bounded contexts específicos del negocio. Cada uno encapsula su propio modelo de dominio, casos de uso y adaptadores de infraestructura.
+
+#### `UsersModule`
+
+Gestión del ciclo de vida de usuarios del sistema: registro, consulta, actualización y gestión de estado/rol.
+
+| Capa | Contenido |
+|---|---|
+| **Domain** | Entidad `User`, value objects `UserId` / `UserEmail`, enums `UserRole` / `UserStatus`, puerto `UserRepository`, 9 excepciones de dominio |
+| **Application** | Servicio `UserFinderService`, 9 casos de uso: `FindAllUsers`, `FindUserById`, `FindUserByEmail`, `ChangeUserRole`, `UpdateUserEmail`, `ActivateUser`, `DeactivateUser`, `SuspendUser`, `RestoreUser` |
+| **Infrastructure** | Repositorio `PrismaUserRepository`, mapper `PrismaUserMapper` |
+| **Presentation** | DTOs request: `ChangeUserRole` / `UpdateUserEmail`; DTO response: `UserResponse`; presenter `UserPresenter` |
 
 > **Nota:** A medida que se añadan nuevos bounded contexts al sistema, se documentarán en esta sección con su propósito y dependencias principales.
