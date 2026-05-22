@@ -4,7 +4,6 @@ import { PrismaUserRepository } from './infrastructure/repositories/prisma-user.
 import { UserFinderService } from './application/services/user-finder.service';
 import { FindUserByIdUseCase } from './application/use-cases/find-user-by-id.use-case';
 import { FindUserByEmailUseCase } from './application/use-cases/find-user-by-email.use-case';
-import { FindAllUsersUseCase } from './application/use-cases/find-all-users.use-case';
 import { UpdateUserEmailUseCase } from './application/use-cases/update-user-email.use-case';
 import { ChangeUserRoleUseCase } from './application/use-cases/change-user-role.use-case';
 import { ActivateUserUseCase } from './application/use-cases/activate-user.use-case';
@@ -21,7 +20,6 @@ import { RestoreUserUseCase } from './application/use-cases/restore-user.use-cas
     UserFinderService,
     FindUserByIdUseCase,
     FindUserByEmailUseCase,
-    FindAllUsersUseCase,
     UpdateUserEmailUseCase,
     ChangeUserRoleUseCase,
     ActivateUserUseCase,

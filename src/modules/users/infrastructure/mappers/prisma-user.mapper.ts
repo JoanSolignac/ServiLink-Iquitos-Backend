@@ -46,10 +46,6 @@ export function toDomainUser(user: PrismaUser): User {
   );
 }
 
-export function toDomainUserList(users: PrismaUser[]): User[] {
-  return users.map((u) => toDomainUser(u));
-}
-
 export function toPersistenceRole(role: UserRole): PrismaUserRole {
   switch (role) {
     case UserRole.USER:
