@@ -3,11 +3,7 @@ import { UserEmail } from '../../domain/value-objects/user-email.value-object';
 import { User } from '../../domain/entities/user.entity';
 import { UserId } from '../../domain/value-objects/user-id.value-object';
 import { PrismaService } from '../../../../prisma/prisma.service';
-import {
-  toDomainUser,
-  toDomainUserList,
-  toPersistenceUser,
-} from '../mappers/prisma-user.mapper';
+import { toDomainUser, toPersistenceUser } from '../mappers/prisma-user.mapper';
 import { Injectable } from '@nestjs/common';
 
 @Injectable()
@@ -20,12 +16,6 @@ export class PrismaUserRepository implements UserRepository {
     });
 
     return Boolean(user);
-  }
-
-  async findAll(): Promise<User[]> {
-    const users = await this.prisma.user.findMany();
-
-    return toDomainUserList(users);
   }
 
   async findByEmail(email: UserEmail): Promise<User | null> {
