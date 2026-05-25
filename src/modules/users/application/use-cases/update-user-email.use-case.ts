@@ -23,6 +23,6 @@ export class UpdateUserEmailUseCase {
 
     user.updateEmail(email);
 
-    await this.userRepository.save(user);
+    await this.userRepository.update(user);
   }
 }

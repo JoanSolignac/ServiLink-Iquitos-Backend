@@ -15,6 +15,6 @@ export class SuspendUserUseCase {
 
     user.suspend();
 
-    await this.userRepository.save(user);
+    await this.userRepository.update(user);
   }
 }

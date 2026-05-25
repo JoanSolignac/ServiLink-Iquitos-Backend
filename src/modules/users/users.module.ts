@@ -27,5 +27,6 @@ import { RestoreUserUseCase } from './application/use-cases/restore-user.use-cas
     SuspendUserUseCase,
     RestoreUserUseCase,
   ],
+  exports: [FindUserByEmailUseCase, UserRepository],
 })
 export class UsersModule {}

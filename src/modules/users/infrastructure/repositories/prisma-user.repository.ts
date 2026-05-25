@@ -5,6 +5,10 @@ import { UserId } from '../../domain/value-objects/user-id.value-object';
 import { PrismaService } from '../../../../prisma/prisma.service';
 import { toDomainUser, toPersistenceUser } from '../mappers/prisma-user.mapper';
 import { Injectable } from '@nestjs/common';
+import { PrismaClientKnownRequestError } from '@prisma/client/runtime/client';
+import { UserAlreadyExistsException } from '../../domain/exceptions/user-already-exists.exception';
+import { UserNotFoundException } from '../../domain/exceptions/user-not-found.exception';
+import { Prisma } from '@prisma/client';
 
 @Injectable()
 export class PrismaUserRepository implements UserRepository {
@@ -26,6 +30,25 @@ export class PrismaUserRepository implements UserRepository {
     return user ? toDomainUser(user) : null;
   }
 
+  async findByIdOrThrow(userId: UserId): Promise<User> {
+    try {
+      const user = await this.prisma.user.findUniqueOrThrow({
+        where: { id: userId.toPrimitives() },
+      });
+
+      return toDomainUser(user);
+    } catch (error) {
+      if (
+        error instanceof Prisma.PrismaClientKnownRequestError &&
+        error.code === 'P2025'
+      ) {
+        throw new UserNotFoundException();
+      }
+
+      throw error;
+    }
+  }
+
   async findById(id: UserId): Promise<User | null> {
     const user = await this.prisma.user.findUnique({
       where: { id: id.toPrimitives() },
@@ -34,13 +57,31 @@ export class PrismaUserRepository implements UserRepository {
     return user ? toDomainUser(user) : null;
   }
 
-  async save(user: User): Promise<void> {
-    const toPersist = toPersistenceUser(user);
+  async create(user: User): Promise<void> {
+    try {
+      const data = toPersistenceUser(user);
 
-    await this.prisma.user.upsert({
-      create: toPersist,
-      update: toPersist,
-      where: { id: user.getId().toPrimitives() },
+      await this.prisma.user.create({
+        data,
+      });
+    } catch (error) {
+      if (
+        error instanceof PrismaClientKnownRequestError &&
+        error.code == 'P2002'
+      ) {
+        throw new UserAlreadyExistsException();
+      }
+
+      throw error;
+    }
+  }
+
+  async update(user: User): Promise<void> {
+    const data = toPersistenceUser(user);
+
+    await this.prisma.user.update({
+      where: { id: data.id },
+      data: data,
     });
   }
 }

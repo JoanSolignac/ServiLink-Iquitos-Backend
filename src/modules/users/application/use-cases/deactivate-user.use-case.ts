@@ -15,6 +15,6 @@ export class DeactivateUserUseCase {
 
     user.deactivate();
 
-    await this.userRepository.save(user);
+    await this.userRepository.update(user);
   }
 }
