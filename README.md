@@ -16,6 +16,8 @@ El proyecto ha sido desarrollado sobre las siguientes tecnologías y herramienta
 - **Validación de Datos:** class-validator, class-transformer, Joi
 - **Gestión de Configuración:** @nestjs/config
 - **ORM:** Prisma
+- **Autenticación y Seguridad:** Passport.js (`@nestjs/passport`), JWT (`passport-jwt`), `jwks-rsa`
+- **Hashing:** Argon2 (`argon2`)
 - **Testing:** Jest 30, Supertest
 - **Linting y Formato:** ESLint 9, Prettier 3
 - **Gestor de Paquetes:** Yarn
@@ -114,10 +116,11 @@ El proyecto valida estrictamente las variables de entorno mediante un esquema Jo
 | `PORT` | Puerto de escucha del servidor | `3000` | Sí |
 | `GLOBAL_PREFIX` | Prefijo base para las rutas de la API. Solo minúsculas, números y guiones. Separadores con `/`. No iniciar ni terminar con `/`. | `api/v1` | Sí |
 | `DATABASE_URL` | Cadena de conexión a PostgreSQL con esquema `postgresql://`. | `postgresql://postgres:postgres@localhost:5432/servilink` | Sí |
+| `AUTH0_DOMAIN` | Dominio del tenant de Auth0 | `mi-tenant.us.auth0.com` | Sí |
+| `AUTH0_ISSUER` | Dirección del emisor de tokens de Auth0. Debe empezar con `https://` y terminar con `/`. | `https://mi-tenant.us.auth0.com/` | Sí |
+| `AUTH0_AUDIENCE` | Identificador de la API/Audiencia configurada en Auth0. | `https://api.servilink.com` | Sí |
 
 > **Atención:** Valores como `api/V1` (con mayúscula) harán fallar la validación del esquema Joi.
-
-> **Nota sobre `NODE_ENV`:** Es establecida automáticamente por los scripts npm (`start:dev` → `development`, `test` → `test`, `start:prod` → `production`). No requiere declaración manual en el archivo `.env`.
 
 ## Arquitectura y Convenciones
 
@@ -169,6 +172,7 @@ Son aquellos que proporcionan building blocks base reutilizables por cualquier b
 |---|---|
 | `UuidModule` | Generación de IDs UUID v7. Expone el puerto `IdGenerator`. Módulo global (`@Global()`), importado en `AppModule`. |
 | `PrismaModule` | Conexión a PostgreSQL via Prisma ORM y gestión de transacciones. Expone `PrismaService` y el puerto `TransactionManager`. Módulo global (`@Global()`), importado en `AppModule`. |
+| `HashModule` | Encriptación y validación de hashes mediante el algoritmo Argon2. Expone el puerto `HashService`. Módulo global (`@Global()`), importado en `AppModule`. |
 
 ### Módulos de dominio
 
@@ -180,9 +184,22 @@ Gestión del ciclo de vida de usuarios del sistema: registro, consulta, actualiz
 
 | Capa | Contenido |
 |---|---|
-| **Domain** | Entidad `User`, value objects `UserId` / `UserEmail`, enums `UserRole` / `UserStatus`, puerto `UserRepository`, 9 excepciones de dominio |
+| **Domain** | Entidad `User`, value objects `UserId` / `UserEmail`, enums `UserStatus`, puerto `UserRepository`, 9 excepciones de dominio |
 | **Application** | Servicio `UserFinderService`, 9 casos de uso: `FindAllUsers`, `FindUserById`, `FindUserByEmail`, `ChangeUserRole`, `UpdateUserEmail`, `ActivateUser`, `DeactivateUser`, `SuspendUser`, `RestoreUser` |
 | **Infrastructure** | Repositorio `PrismaUserRepository`, mapper `PrismaUserMapper` |
 | **Presentation** | DTOs request: `ChangeUserRole` / `UpdateUserEmail`; DTO response: `UserResponse`; presenter `UserPresenter` |
+
+> **Nota sobre `UserRole`:** El enum `UserRole` fue trasladado a `src/shared/enums/user-role.enum.ts` para posibilitar su consumo transversal tanto por el módulo de usuarios como por los guards y decoradores de autenticación.
+
+#### `AuthModule`
+
+Gestión de la autenticación de usuarios federados mediante Auth0, control de roles y sincronización de identidades.
+
+| Capa | Contenido |
+|---|---|
+| **Domain** | Entidad `AuthIdentity`, value objects `AuthIdentityId` / `AuthProvider` / `PasswordHash` / `ProviderId` / `RefreshTokenHash`, interfaces `AuthCurrentUser` / `Auth0PayloadInterface`, puerto `AuthIdentityRepository` |
+| **Application** | Servicio `AuthIdentityFinderService`, caso de uso `SyncUserUseCase` |
+| **Infrastructure** | Repositorio `PrismaAuthIdentityRepository`, mapper `PrismaAuthIdentityMapper`, guards `JwtAuthGuard` / `RoleGuard`, decoradores `CurrentUser` / `Role` / `UseAuth`, estrategia `Auth0Strategy` |
+| **Presentation** | DTO response `MeResponseDto`; presenter `MePresenter`; controlador `AuthController` |
 
 > **Nota:** A medida que se añadan nuevos bounded contexts al sistema, se documentarán en esta sección con su propósito y dependencias principales.
