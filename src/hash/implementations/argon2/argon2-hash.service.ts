@@ -7,7 +7,7 @@ export class Argon2HashService implements HashService {
   hash(value: string): Promise<string> {
     return argon2.hash(value);
   }
-  validate(value: string, hashedValue: string): Promise<boolean> {
-    return argon2.verify(value, hashedValue);
+  async validate(value: string, hashedValue: string): Promise<boolean> {
+    return argon2.verify(hashedValue, value);
   }
 }
