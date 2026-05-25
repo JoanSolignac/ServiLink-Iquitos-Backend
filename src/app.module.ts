@@ -4,6 +4,8 @@ import { validationSchema } from './shared/config/schemas/validation.schema';
 import { UuidModule } from './uuid/uuid.module';
 import { PrismaModule } from './prisma/prisma.module';
 import { UsersModule } from './modules/users/users.module';
+import { AuthModule } from './modules/auth/auth.module';
+import { HashModule } from './hash/hash.module';
 
 @Module({
   imports: [
@@ -16,6 +18,8 @@ import { UsersModule } from './modules/users/users.module';
     UuidModule,
     PrismaModule,
     UsersModule,
+    AuthModule,
+    HashModule,
   ],
 })
 export class AppModule {}

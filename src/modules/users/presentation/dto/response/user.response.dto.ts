@@ -1,4 +1,4 @@
-import { UserRole } from '../../../domain/enums/user-role.enum';
+import { UserRole } from '../../../../../shared/enums/user-role.enum';
 import { UserStatus } from '../../../domain/enums/user-status.enum';
 
 export class UserResponseDto {

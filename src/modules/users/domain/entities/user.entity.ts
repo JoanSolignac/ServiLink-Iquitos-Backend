@@ -1,7 +1,7 @@
 import { UserId } from '../value-objects/user-id.value-object';
 import { UserEmail } from '../value-objects/user-email.value-object';
 import { UserStatus } from '../enums/user-status.enum';
-import { UserRole } from '../enums/user-role.enum';
+import { UserRole } from '../../../../shared/enums/user-role.enum';
 import { UserSuspendException } from '../exceptions/user-suspend.exception';
 import { UserAlreadyActiveException } from '../exceptions/user-already-active.exception';
 import { UserAlreadyInactiveException } from '../exceptions/user-already-inactive.exception';

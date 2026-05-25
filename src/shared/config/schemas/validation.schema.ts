@@ -14,4 +14,17 @@ export const validationSchema = Joi.object({
   DATABASE_URL: Joi.string()
     .uri({ scheme: ['postgresql'] })
     .required(),
+
+  AUTH0_DOMAIN: Joi.string()
+    .pattern(/^[a-zA-Z0-9-]+\.us\.auth0\.com$/)
+    .required(),
+
+  AUTH0_ISSUER: Joi.string()
+    .uri({ scheme: ['https'] })
+    .pattern(/^https:\/\/.+\/$/)
+    .required(),
+
+  AUTH0_AUDIENCE: Joi.string()
+    .uri({ scheme: ['https'] })
+    .required(),
 });

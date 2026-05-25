@@ -3,7 +3,7 @@ import {
   UserRole as PrismaUserRole,
   UserStatus as PrismaUserStatus,
 } from '@prisma/client';
-import { UserRole } from '../../domain/enums/user-role.enum';
+import { UserRole } from '../../../../shared/enums/user-role.enum';
 import { UserStatus } from '../../domain/enums/user-status.enum';
 import { User } from '../../domain/entities/user.entity';
 import { UserId } from '../../domain/value-objects/user-id.value-object';

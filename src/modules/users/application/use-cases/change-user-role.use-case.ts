@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { UserFinderService } from '../services/user-finder.service';
 import { UserRepository } from '../../domain/repositories/user.repository';
 import { UserId } from '../../domain/value-objects/user-id.value-object';
-import { UserRole } from '../../domain/enums/user-role.enum';
+import { UserRole } from '../../../../shared/enums/user-role.enum';
 
 @Injectable()
 export class ChangeUserRoleUseCase {
@@ -16,6 +16,6 @@ export class ChangeUserRoleUseCase {
 
     user.updateRole(role);
 
-    await this.userRepository.save(user);
+    await this.userRepository.update(user);
   }
 }

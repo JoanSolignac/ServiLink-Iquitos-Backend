@@ -15,6 +15,6 @@ export class RestoreUserUseCase {
 
     user.restore();
 
-    await this.userRepository.save(user);
+    await this.userRepository.update(user);
   }
 }
