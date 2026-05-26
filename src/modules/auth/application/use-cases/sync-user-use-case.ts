@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { AuthIdentityRepository } from '../../domain/repositories/auth-identity.repository';
 import { UserRepository } from '../../../users/domain/repositories/user.repository';
 import { IdGenerator } from '../../../../shared/abstractions/id-generator.abstract';
@@ -13,6 +13,8 @@ import { AuthIdentity } from '../../domain/entities/auth-identity.entity';
 
 @Injectable()
 export class SyncUserUseCase {
+  private readonly logger = new Logger(SyncUserUseCase.name);
+
   constructor(
     private readonly authIdentityRepository: AuthIdentityRepository,
     private readonly userRepository: UserRepository,
@@ -25,12 +27,22 @@ export class SyncUserUseCase {
     userEmail: UserEmail,
     provider: AuthProvider,
   ): Promise<User> {
+    this.logger.log(
+      `SyncUser input: provider=${provider.getValue()}, providerId=${providerId.toPrimitives()}, email=${userEmail.toPrimitives()}`,
+    );
+
     // Buscar identidad existente
     const existingIdentity =
       await this.authIdentityRepository.findByProviderId(providerId);
 
     if (existingIdentity) {
-      return this.userRepository.findByIdOrThrow(existingIdentity.getUserId());
+      const user = await this.userRepository.findByIdOrThrow(
+        existingIdentity.getUserId(),
+      );
+      this.logger.log(
+        `Existing identity found for user: id=${user.getId().toPrimitives()}`,
+      );
+      return user;
     }
 
     // Buscar usuario por email
@@ -48,6 +60,9 @@ export class SyncUserUseCase {
         await this.authIdentityRepository.create(authIdentity);
       });
 
+      this.logger.log(
+        `New auth identity linked to existing user: id=${existingUser.getId().toPrimitives()}`,
+      );
       return existingUser;
     }
 
@@ -66,6 +81,7 @@ export class SyncUserUseCase {
       await this.authIdentityRepository.create(authIdentity);
     });
 
+    this.logger.log(`New user created: id=${user.getId().toPrimitives()}`);
     return user;
   }
 

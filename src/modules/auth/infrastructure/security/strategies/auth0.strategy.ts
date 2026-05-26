@@ -8,10 +8,12 @@ import { AuthProvider } from '../../../domain/value-objects/auth-provider.value-
 import { UserEmail } from '../../../../users/domain/value-objects/user-email.value-object';
 import { ProviderId } from '../../../domain/value-objects/provider-id.value-object';
 import { AuthCurrentUser } from '../../../domain/interfaces/auth-current-user.interface';
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { Injectable, Logger, UnauthorizedException } from '@nestjs/common';
 
 @Injectable()
 export class Auth0Strategy extends PassportStrategy(Strategy, 'auth0') {
+  private readonly logger = new Logger(Auth0Strategy.name);
+
   constructor(
     private readonly configService: ConfigService,
     private readonly syncUserUseCase: SyncUserUseCase,
@@ -30,9 +32,12 @@ export class Auth0Strategy extends PassportStrategy(Strategy, 'auth0') {
   }
 
   async validate(payload: Auth0PayloadInterface): Promise<AuthCurrentUser> {
+    this.logger.log(`Auth0 payload received: sub=${payload.sub}`);
+
     const [provider, providerId] = payload.sub.split('|');
 
     if (!provider || !providerId) {
+      this.logger.warn('Invalid auth0 payload: missing provider or providerId');
       throw new UnauthorizedException();
     }
 
@@ -43,8 +48,15 @@ export class Auth0Strategy extends PassportStrategy(Strategy, 'auth0') {
     );
 
     if (!user.getEmail()) {
+      this.logger.warn(
+        `User without email found: id=${user.getId().toPrimitives()}`,
+      );
       throw new UnauthorizedException();
     }
+
+    this.logger.log(
+      `User validated: id=${user.getId().toPrimitives()}, email=${user.getEmail().toPrimitives()}, role=${user.getRole()}`,
+    );
 
     return {
       id: user.getId(),
