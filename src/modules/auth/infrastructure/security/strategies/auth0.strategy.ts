@@ -48,12 +48,14 @@ export class Auth0Strategy extends PassportStrategy(Strategy, 'auth0') {
     );
 
     if (!user.getEmail()) {
-      this.logger.warn(`User without email found: id=${user.getId()}`);
+      this.logger.warn(
+        `User without email found: id=${user.getId().toPrimitives()}`,
+      );
       throw new UnauthorizedException();
     }
 
     this.logger.log(
-      `User validated: id=${user.getId()}, email=${user.getEmail()}, role=${user.getRole()}`
+      `User validated: id=${user.getId().toPrimitives()}, email=${user.getEmail().toPrimitives()}, role=${user.getRole()}`,
     );
 
     return {

@@ -13,7 +13,7 @@ export class AuthController {
   @UseAuth()
   me(@CurrentUser() authCurrentUser: AuthCurrentUser): MeResponseDto {
     this.logger.log(
-      `AuthController.me input: id=${authCurrentUser.id.toPrimitives()}, email=${authCurrentUser.email.toPrimitives()}, role=${authCurrentUser.role}`
+      `AuthController.me input: id=${authCurrentUser.id.toPrimitives()}, email=${authCurrentUser.email.toPrimitives()}, role=${authCurrentUser.role}`,
     );
 
     const response = toResponseMe(authCurrentUser);

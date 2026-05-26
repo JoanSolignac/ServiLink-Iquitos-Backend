@@ -28,7 +28,7 @@ export class SyncUserUseCase {
     provider: AuthProvider,
   ): Promise<User> {
     this.logger.log(
-      `SyncUser input: provider=${provider.getValue()}, providerId=${providerId.toPrimitives()}, email=${userEmail.toPrimitives()}`
+      `SyncUser input: provider=${provider.getValue()}, providerId=${providerId.toPrimitives()}, email=${userEmail.toPrimitives()}`,
     );
 
     // Buscar identidad existente
@@ -36,8 +36,12 @@ export class SyncUserUseCase {
       await this.authIdentityRepository.findByProviderId(providerId);
 
     if (existingIdentity) {
-      const user = await this.userRepository.findByIdOrThrow(existingIdentity.getUserId());
-      this.logger.log(`Existing identity found for user: id=${user.getId()}`);
+      const user = await this.userRepository.findByIdOrThrow(
+        existingIdentity.getUserId(),
+      );
+      this.logger.log(
+        `Existing identity found for user: id=${user.getId().toPrimitives()}`,
+      );
       return user;
     }
 
@@ -56,7 +60,9 @@ export class SyncUserUseCase {
         await this.authIdentityRepository.create(authIdentity);
       });
 
-      this.logger.log(`New auth identity linked to existing user: id=${existingUser.getId()}`);
+      this.logger.log(
+        `New auth identity linked to existing user: id=${existingUser.getId().toPrimitives()}`,
+      );
       return existingUser;
     }
 
@@ -75,7 +81,7 @@ export class SyncUserUseCase {
       await this.authIdentityRepository.create(authIdentity);
     });
 
-    this.logger.log(`New user created: id=${user.getId()}`);
+    this.logger.log(`New user created: id=${user.getId().toPrimitives()}`);
     return user;
   }
 
