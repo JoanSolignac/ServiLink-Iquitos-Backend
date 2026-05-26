@@ -1,4 +1,4 @@
-import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
+import { CanActivate, ExecutionContext, Injectable, Logger } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { UserRole } from '../../../../../shared/enums/user-role.enum';
 import { ROLE_KEY } from '../decorators/role.decorator';
@@ -6,6 +6,8 @@ import { AuthenticatedRequest } from '../decorators/current-user.decorator';
 
 @Injectable()
 export class RoleGuard implements CanActivate {
+  private readonly logger = new Logger(RoleGuard.name);
+
   constructor(private readonly reflector: Reflector) {}
   canActivate(context: ExecutionContext): boolean {
     const requiredRoles = this.reflector.getAllAndOverride<UserRole[]>(
@@ -23,10 +25,21 @@ export class RoleGuard implements CanActivate {
 
     const userRole = authenticatedRequest.user.role;
 
+    this.logger.log(
+      `RoleGuard check: requiredRoles=[${requiredRoles.join(',')}], userRole=${userRole}`
+    );
+
     if (!userRole) {
+      this.logger.warn('RoleGuard denied: user has no role');
       return false;
     }
 
-    return requiredRoles.includes(userRole);
+    const allowed = requiredRoles.includes(userRole);
+
+    if (!allowed) {
+      this.logger.warn(`RoleGuard denied: userRole=${userRole} not in requiredRoles`);
+    }
+
+    return allowed;
   }
 }
