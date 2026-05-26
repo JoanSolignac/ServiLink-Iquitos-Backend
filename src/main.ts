@@ -23,7 +23,7 @@ async function bootstrap(): Promise<void> {
 
   const PORT = configService.getOrThrow<number>('PORT');
 
-  await app.listen(PORT);
+  await app.listen(PORT, '0.0.0.0');
 
   console.log(`Port started on: ${PORT}`);
 }
