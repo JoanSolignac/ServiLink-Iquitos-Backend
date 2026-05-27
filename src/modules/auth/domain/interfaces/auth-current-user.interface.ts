@@ -6,4 +6,5 @@ export interface AuthCurrentUser {
   id: UserId;
   role: UserRole;
   email: UserEmail;
+  hasProfile: boolean;
 }

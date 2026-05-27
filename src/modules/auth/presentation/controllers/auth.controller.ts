@@ -12,13 +12,7 @@ export class AuthController {
 
   @Get('me')
   @UseAuth()
-  async me(
-    @CurrentUser() authCurrentUser: AuthCurrentUser,
-  ): Promise<MeResponseDto> {
-    const hasProfile = await this.profileRepository.existsByUserId(
-      authCurrentUser.id,
-    );
-
-    return toResponseMe(authCurrentUser, hasProfile);
+  me(@CurrentUser() authCurrentUser: AuthCurrentUser): MeResponseDto {
+    return toResponseMe(authCurrentUser);
   }
 }
