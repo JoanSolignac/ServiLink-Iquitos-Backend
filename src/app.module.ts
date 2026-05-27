@@ -5,6 +5,8 @@ import { UuidModule } from './uuid/uuid.module';
 import { PrismaModule } from './prisma/prisma.module';
 import { UsersModule } from './modules/users/users.module';
 import { AuthModule } from './modules/auth/auth.module';
+import { ProfilesModule } from './modules/profiles/profiles.module';
+import { SupabaseModule } from './supabase/supabase.module';
 import { HashModule } from './hash/hash.module';
 
 @Module({
@@ -19,6 +21,8 @@ import { HashModule } from './hash/hash.module';
     PrismaModule,
     UsersModule,
     AuthModule,
+    ProfilesModule,
+    SupabaseModule,
     HashModule,
   ],
 })

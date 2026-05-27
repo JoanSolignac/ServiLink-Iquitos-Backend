@@ -4,12 +4,21 @@ import type { AuthCurrentUser } from '../../domain/interfaces/auth-current-user.
 import { UseAuth } from '../../infrastructure/security/decorators/use-auth.decorator';
 import { toResponseMe } from '../presenters/me.presenter';
 import { MeResponseDto } from '../dto/response/me.response.dto';
+import { ProfileRepository } from '../../../profiles/domain/repositories/profile.repository';
 
 @Controller('auth')
 export class AuthController {
+  constructor(private readonly profileRepository: ProfileRepository) {}
+
   @Get('me')
   @UseAuth()
-  me(@CurrentUser() authCurrentUser: AuthCurrentUser): MeResponseDto {
-    return toResponseMe(authCurrentUser);
+  async me(
+    @CurrentUser() authCurrentUser: AuthCurrentUser,
+  ): Promise<MeResponseDto> {
+    const hasProfile = await this.profileRepository.existsByUserId(
+      authCurrentUser.id,
+    );
+
+    return toResponseMe(authCurrentUser, hasProfile);
   }
 }

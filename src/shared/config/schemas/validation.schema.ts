@@ -27,4 +27,12 @@ export const validationSchema = Joi.object({
   AUTH0_AUDIENCE: Joi.string()
     .uri({ scheme: ['https'] })
     .required(),
+
+  SUPABASE_URL: Joi.string()
+    .uri({ scheme: ['https'] })
+    .required(),
+
+  SUPABASE_SERVICE_ROLE_KEY: Joi.string().required(),
+
+  SUPABASE_BUCKET_NAME: Joi.string().required(),
 });
