@@ -8,7 +8,7 @@ import { AuthProvider } from '../../../domain/value-objects/auth-provider.value-
 import { UserEmail } from '../../../../users/domain/value-objects/user-email.value-object';
 import { ProviderId } from '../../../domain/value-objects/provider-id.value-object';
 import { AuthCurrentUser } from '../../../domain/interfaces/auth-current-user.interface';
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { Injectable, Logger, UnauthorizedException } from '@nestjs/common';
 import { ProfileRepository } from '../../../../profiles/domain/repositories/profile.repository';
 
 @Injectable()
