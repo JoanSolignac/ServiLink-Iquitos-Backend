@@ -17,6 +17,7 @@ El proyecto ha sido desarrollado sobre las siguientes tecnologías y herramienta
 - **Gestión de Configuración:** @nestjs/config
 - **ORM:** Prisma
 - **Autenticación y Seguridad:** Passport.js (`@nestjs/passport`), JWT (`passport-jwt`), `jwks-rsa`
+- **Almacenamiento de Archivos:** Supabase Storage (`@supabase/supabase-js`)
 - **Hashing:** Argon2 (`argon2`)
 - **Testing:** Jest 30, Supertest
 - **Linting y Formato:** ESLint 9, Prettier 3
@@ -119,6 +120,9 @@ El proyecto valida estrictamente las variables de entorno mediante un esquema Jo
 | `AUTH0_DOMAIN` | Dominio del tenant de Auth0 | `mi-tenant.us.auth0.com` | Sí |
 | `AUTH0_ISSUER` | Dirección del emisor de tokens de Auth0. Debe empezar con `https://` y terminar con `/`. | `https://mi-tenant.us.auth0.com/` | Sí |
 | `AUTH0_AUDIENCE` | Identificador de la API/Audiencia configurada en Auth0. | `https://api.servilink.com` | Sí |
+| `SUPABASE_URL` | URL del proyecto de Supabase (ej. `https://<project-id>.supabase.co`) | `https://abc123.supabase.co` | Sí |
+| `SUPABASE_SERVICE_ROLE_KEY` | Service Role Key de Supabase. **Mantener secreta, nunca exponer al frontend.** | `eyJhbGci...` | Sí |
+| `SUPABASE_BUCKET_NAME` | Nombre del bucket de Supabase Storage para archivos de perfil | `servilink-bucket` | Sí |
 
 > **Atención:** Valores como `api/V1` (con mayúscula) harán fallar la validación del esquema Joi.
 
@@ -173,6 +177,9 @@ Son aquellos que proporcionan building blocks base reutilizables por cualquier b
 | `UuidModule` | Generación de IDs UUID v7. Expone el puerto `IdGenerator`. Módulo global (`@Global()`), importado en `AppModule`. |
 | `PrismaModule` | Conexión a PostgreSQL via Prisma ORM y gestión de transacciones. Expone `PrismaService` y el puerto `TransactionManager`. Módulo global (`@Global()`), importado en `AppModule`. |
 | `HashModule` | Encriptación y validación de hashes mediante el algoritmo Argon2. Expone el puerto `HashService`. Módulo global (`@Global()`), importado en `AppModule`. |
+| `SupabaseModule` | Conexión a Supabase Storage y gestión de archivos. Expone el puerto `FileStorage` (abstracción de almacenamiento) y el cliente `SupabaseClient`. Módulo global (`@Global()`), importado en `AppModule`. |
+
+> **Nota sobre `FileStorage`:** Es una abstracción ubicada en `shared/abstractions/file-storage.abstract.ts` que define los contratos `upload()` y `delete()`. Su implementación concreta (`SupabaseStorageService`) reside en `src/supabase/services/`. Esto permite que los casos de uso del dominio no dependan directamente de Supabase, facilitando futuros cambios de proveedor de almacenamiento.
 
 ### Módulos de dominio
 
@@ -202,4 +209,118 @@ Gestión de la autenticación de usuarios federados mediante Auth0, control de r
 | **Infrastructure** | Repositorio `PrismaAuthIdentityRepository`, mapper `PrismaAuthIdentityMapper`, guards `JwtAuthGuard` / `RoleGuard`, decoradores `CurrentUser` / `Role` / `UseAuth`, estrategia `Auth0Strategy` |
 | **Presentation** | DTO response `MeResponseDto`; presenter `MePresenter`; controlador `AuthController` |
 
-> **Nota:** A medida que se añadan nuevos bounded contexts al sistema, se documentarán en esta sección con su propósito y dependencias principales.
+> **Nota sobre `MeResponseDto`:** La respuesta de `GET /auth/me` ahora incluye el campo `hasProfile: boolean`, que permite al cliente (Flutter) detectar si el usuario ya completó su perfil o debe ser redirigido al formulario de bienvenida.
+
+#### `ProfilesModule`
+
+Gestión de perfiles de usuario, incluyendo datos personales, biografía y foto de perfil almacenada en Supabase Storage.
+
+| Capa | Contenido |
+|---|---|
+| **Domain** | Entidad `Profile`, value objects `ProfileFirstName` / `ProfileLastName` / `ProfileBirthDate` / `ProfilePhone` / `ProfileAddress` / `ProfileBio` / `ProfilePictureUrl`, puerto `ProfileRepository`, 7 excepciones de dominio |
+| **Application** | 3 casos de uso: `CreateProfileUseCase`, `UpdateProfileUseCase`, `FindProfileByUserIdUseCase`. Ambos casos de escritura consumen el puerto `FileStorage` (no dependen directamente de Supabase) |
+| **Infrastructure** | Repositorio `PrismaProfileRepository`, mapper `PrismaProfileMapper` |
+| **Presentation** | Controlador `ProfileController`, DTOs request: `CreateProfileRequestDto` / `UpdateProfileRequestDto`; DTO response: `ProfileResponseDto`; presenter `ProfilePresenter`; pipe `ProfilePictureValidationPipe` |
+
+> **Nota sobre la foto de perfil:** Al actualizar (`PATCH /profiles/me`), si se envía una nueva imagen, el caso de uso sube la nueva foto a Supabase, actualiza la URL en la base de datos y elimina automáticamente la imagen anterior del bucket para evitar archivos huérfanos.
+
+### Endpoints del módulo de perfiles
+
+| Método | Ruta | Descripción | Auth |
+|---|---|---|---|
+| `POST` | `/profiles` | Crea el perfil del usuario autenticado. Body: `multipart/form-data` (`firstName`, `lastName`, `birthDate`, `phone`, `address`, `bio`, `profilePicture` opcional). | Sí |
+| `GET` | `/profiles/me` | Obtiene el perfil completo del usuario autenticado. | Sí |
+| `GET` | `/profiles/:userId` | Obtiene el perfil público de cualquier usuario por su ID. | Sí |
+| `PATCH` | `/profiles/me` | Actualiza los datos del perfil propio y reemplaza la foto si se envía una nueva. Body: `multipart/form-data`. | Sí |
+
+> **Restricciones de la foto:** Formatos permitidos `.jpg`, `.jpeg`, `.png`, `.webp`. Tamaño máximo 6 MB.
+
+## Cómo probar los endpoints de perfiles en Postman
+
+A continuación se describe el flujo recomendado para probar el módulo de perfiles desde Postman (o cualquier cliente HTTP que soporte `multipart/form-data`).
+
+### 1. Obtener token de autenticación
+
+Primero debes contar con un token JWT válido de Auth0. Puedes obtenerlo:
+- Mediante el flujo de login de tu aplicación Flutter/cliente.
+- O directamente desde el dashboard de Auth0 (pestaña *Test* de tu API).
+
+### 2. Verificar si el usuario ya tiene perfil
+
+**GET** `http://localhost:3000/api/v1/auth/me`
+
+- **Headers:** `Authorization: Bearer <TU_JWT_TOKEN>`
+- **Respuesta esperada:**
+  ```json
+  {
+    "id": "...",
+    "role": "USER",
+    "email": "usuario@ejemplo.com",
+    "hasProfile": false
+  }
+  ```
+  Si `hasProfile` es `false`, procede a crear el perfil.
+
+### 3. Crear perfil
+
+**POST** `http://localhost:3000/api/v1/profiles`
+
+- **Headers:** `Authorization: Bearer <TU_JWT_TOKEN>`
+- **Body:** Selecciona `form-data` (no `raw` ni `x-www-form-urlencoded`).
+
+| Key | Tipo | Valor |
+|---|---|---|
+| `firstName` | Text | `Juan` |
+| `lastName` | Text | `Pérez` |
+| `birthDate` | Text | `1995-08-15` |
+| `phone` | Text | `+51999999999` |
+| `address` | Text | `Calle Los Pinos 123` |
+| `bio` | Text | `Desarrollador fullstack` |
+| `profilePicture` | File | Selecciona una imagen `.jpg`, `.jpeg`, `.png` o `.webp` (máx 6 MB) |
+
+> **Nota:** Los campos `phone`, `address`, `bio` y `profilePicture` son opcionales en la creación.
+
+### 4. Obtener perfil propio
+
+**GET** `http://localhost:3000/api/v1/profiles/me`
+
+- **Headers:** `Authorization: Bearer <TU_JWT_TOKEN>`
+
+### 5. Actualizar perfil
+
+**PATCH** `http://localhost:3000/api/v1/profiles/me`
+
+- **Headers:** `Authorization: Bearer <TU_JWT_TOKEN>`
+- **Body:** `form-data` (igual que en la creación).
+
+Si envías una nueva `profilePicture`, el backend:
+1. Sube la nueva imagen a Supabase.
+2. Actualiza la URL en la base de datos.
+3. Elimina la imagen anterior del bucket automáticamente.
+
+### 6. Obtener perfil de otro usuario
+
+**GET** `http://localhost:3000/api/v1/profiles/<USER_ID>`
+
+- **Headers:** `Authorization: Bearer <TU_JWT_TOKEN>`
+- Reemplaza `<USER_ID>` por el UUID v7 del usuario objetivo.
+
+> **Nota:** Cualquier usuario autenticado puede consultar perfiles de otros usuarios, ya que esta información será visible públicamente en el marketplace de servicios.
+
+### Ejemplo en cURL (crear perfil con imagen)
+
+```bash
+curl -X POST http://localhost:3000/api/v1/profiles \
+  -H "Authorization: Bearer <TU_JWT_TOKEN>" \
+  -F "firstName=Juan" \
+  -F "lastName=Pérez" \
+  -F "birthDate=1995-08-15" \
+  -F "phone=+51999999999" \
+  -F "address=Calle Los Pinos 123" \
+  -F "bio=Desarrollador fullstack" \
+  -F "profilePicture=@/ruta/a/tu/foto.jpg"
+```
+
+> **Aten**ci**ón:** En `multipart/form-data`, el campo `birthDate` se envía como texto y el `ValidationPipe` global con `enableImplicitConversion: true` lo transforma automáticamente a `Date`. No uses `Content-Type: application/json` para estos endpoints.
+
+> **Atención sobre `profilePicture`:** El nombre exacto del campo debe ser `profilePicture` (coincide con el `FileInterceptor('profilePicture')` del controlador). Usar otro nombre hará que NestJS no reconozca el archivo.

@@ -6,5 +6,6 @@ export function toResponseMe(authCurrentUser: AuthCurrentUser): MeResponseDto {
     id: authCurrentUser.id.toPrimitives(),
     role: authCurrentUser.role,
     email: authCurrentUser.email.toPrimitives(),
+    hasProfile: authCurrentUser.hasProfile,
   };
 }

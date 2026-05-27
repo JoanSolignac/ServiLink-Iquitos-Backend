@@ -4,10 +4,11 @@ import type { AuthCurrentUser } from '../../domain/interfaces/auth-current-user.
 import { UseAuth } from '../../infrastructure/security/decorators/use-auth.decorator';
 import { toResponseMe } from '../presenters/me.presenter';
 import { MeResponseDto } from '../dto/response/me.response.dto';
+import { ProfileRepository } from '../../../profiles/domain/repositories/profile.repository';
 
 @Controller('auth')
 export class AuthController {
-  private readonly logger = new Logger(AuthController.name);
+  constructor(private readonly profileRepository: ProfileRepository) {}
 
   @Get('me')
   @UseAuth()
@@ -16,10 +17,6 @@ export class AuthController {
       `AuthController.me input: id=${authCurrentUser.id.toPrimitives()}, email=${authCurrentUser.email.toPrimitives()}, role=${authCurrentUser.role}`,
     );
 
-    const response = toResponseMe(authCurrentUser);
-
-    this.logger.log(`AuthController.me output: ${JSON.stringify(response)}`);
-
-    return response;
+    return toResponseMe(authCurrentUser);
   }
 }

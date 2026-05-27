@@ -8,7 +8,8 @@ import { AuthProvider } from '../../../domain/value-objects/auth-provider.value-
 import { UserEmail } from '../../../../users/domain/value-objects/user-email.value-object';
 import { ProviderId } from '../../../domain/value-objects/provider-id.value-object';
 import { AuthCurrentUser } from '../../../domain/interfaces/auth-current-user.interface';
-import { Injectable, Logger, UnauthorizedException } from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { ProfileRepository } from '../../../../profiles/domain/repositories/profile.repository';
 
 @Injectable()
 export class Auth0Strategy extends PassportStrategy(Strategy, 'auth0') {
@@ -17,6 +18,7 @@ export class Auth0Strategy extends PassportStrategy(Strategy, 'auth0') {
   constructor(
     private readonly configService: ConfigService,
     private readonly syncUserUseCase: SyncUserUseCase,
+    private readonly profileRepository: ProfileRepository,
   ) {
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
@@ -54,14 +56,13 @@ export class Auth0Strategy extends PassportStrategy(Strategy, 'auth0') {
       throw new UnauthorizedException();
     }
 
-    this.logger.log(
-      `User validated: id=${user.getId().toPrimitives()}, email=${user.getEmail().toPrimitives()}, role=${user.getRole()}`,
-    );
+    const profile = await this.profileRepository.findByUserId(user.getId());
 
     return {
       id: user.getId(),
       role: user.getRole(),
       email: user.getEmail(),
+      hasProfile: Boolean(profile),
     };
   }
 }
