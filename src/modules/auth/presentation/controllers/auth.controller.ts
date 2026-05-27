@@ -1,4 +1,4 @@
-import { Controller, Get } from '@nestjs/common';
+import { Controller, Get, Logger } from '@nestjs/common';
 import { CurrentUser } from '../../infrastructure/security/decorators/current-user.decorator';
 import type { AuthCurrentUser } from '../../domain/interfaces/auth-current-user.interface';
 import { UseAuth } from '../../infrastructure/security/decorators/use-auth.decorator';
@@ -13,6 +13,10 @@ export class AuthController {
   @Get('me')
   @UseAuth()
   me(@CurrentUser() authCurrentUser: AuthCurrentUser): MeResponseDto {
+    this.logger.log(
+      `AuthController.me input: id=${authCurrentUser.id.toPrimitives()}, email=${authCurrentUser.email.toPrimitives()}, role=${authCurrentUser.role}`,
+    );
+
     return toResponseMe(authCurrentUser);
   }
 }

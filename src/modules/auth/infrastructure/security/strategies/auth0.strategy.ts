@@ -13,6 +13,8 @@ import { ProfileRepository } from '../../../../profiles/domain/repositories/prof
 
 @Injectable()
 export class Auth0Strategy extends PassportStrategy(Strategy, 'auth0') {
+  private readonly logger = new Logger(Auth0Strategy.name);
+
   constructor(
     private readonly configService: ConfigService,
     private readonly syncUserUseCase: SyncUserUseCase,
@@ -32,9 +34,12 @@ export class Auth0Strategy extends PassportStrategy(Strategy, 'auth0') {
   }
 
   async validate(payload: Auth0PayloadInterface): Promise<AuthCurrentUser> {
+    this.logger.log(`Auth0 payload received: sub=${payload.sub}`);
+
     const [provider, providerId] = payload.sub.split('|');
 
     if (!provider || !providerId) {
+      this.logger.warn('Invalid auth0 payload: missing provider or providerId');
       throw new UnauthorizedException();
     }
 
@@ -45,6 +50,9 @@ export class Auth0Strategy extends PassportStrategy(Strategy, 'auth0') {
     );
 
     if (!user.getEmail()) {
+      this.logger.warn(
+        `User without email found: id=${user.getId().toPrimitives()}`,
+      );
       throw new UnauthorizedException();
     }
 
