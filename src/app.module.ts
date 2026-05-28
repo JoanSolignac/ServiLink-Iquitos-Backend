@@ -8,6 +8,7 @@ import { AuthModule } from './modules/auth/auth.module';
 import { ProfilesModule } from './modules/profiles/profiles.module';
 import { SupabaseModule } from './supabase/supabase.module';
 import { HashModule } from './hash/hash.module';
+import { ServicesModule } from './modules/services/services.module';
 
 @Module({
   imports: [
@@ -24,6 +25,7 @@ import { HashModule } from './hash/hash.module';
     ProfilesModule,
     SupabaseModule,
     HashModule,
+    ServicesModule,
   ],
 })
 export class AppModule {}

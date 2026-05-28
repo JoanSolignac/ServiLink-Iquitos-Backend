@@ -1,0 +1,6 @@
+export enum ServiceStatus {
+  PENDING = 'PENDING',
+  REQUIRE_REVIEW = 'REQUIRE_REVIEW',
+  APPROVED = 'APPROVED',
+  REJECTED = 'REJECTED',
+}
