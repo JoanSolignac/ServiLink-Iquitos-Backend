@@ -23,6 +23,23 @@ export class User {
     return new User(id, email, UserRole.USER, UserStatus.ACTIVE, now, now);
   }
 
+  static createAnAdministrator(id: UserId, email: UserEmail): User {
+    const now = new Date();
+    return new User(
+      id,
+      email,
+      UserRole.ADMINISTRATOR,
+      UserStatus.ACTIVE,
+      now,
+      now,
+    );
+  }
+
+  static createAModerator(id: UserId, email: UserEmail): User {
+    const now = new Date();
+    return new User(id, email, UserRole.MODERATOR, UserStatus.ACTIVE, now, now);
+  }
+
   static fromPersistence(
     id: UserId,
     email: UserEmail,

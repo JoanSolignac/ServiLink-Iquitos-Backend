@@ -9,6 +9,7 @@ import { ProfilesModule } from './modules/profiles/profiles.module';
 import { SupabaseModule } from './supabase/supabase.module';
 import { HashModule } from './hash/hash.module';
 import { ServicesModule } from './modules/services/services.module';
+import { SeederModule } from './seeder/seeder.module';
 
 @Module({
   imports: [
@@ -26,6 +27,7 @@ import { ServicesModule } from './modules/services/services.module';
     SupabaseModule,
     HashModule,
     ServicesModule,
+    SeederModule,
   ],
 })
 export class AppModule {}
