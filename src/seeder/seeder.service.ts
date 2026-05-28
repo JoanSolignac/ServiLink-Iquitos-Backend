@@ -10,7 +10,6 @@ import { UserRepository } from '../modules/users/domain/repositories/user.reposi
 export class SeederService implements OnModuleInit {
   constructor(
     private readonly userRepository: UserRepository,
-    private readonly transactionManager: TransactionManager,
     private readonly idGenerator: IdGenerator,
   ) {}
 
