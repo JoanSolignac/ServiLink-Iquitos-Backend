@@ -18,10 +18,21 @@ export class SeederService implements OnModuleInit {
     const admin = this.createAnAdministrator('joanpsolignac@gmail.com');
     const moderator = this.createAnModerator('joansolignaclovera@gmail.com');
 
-    await this.transactionManager.execute(async (): Promise<void> => {
-      await this.userRepository.upsert(admin);
-      await this.userRepository.upsert(moderator);
-    });
+    const existsAdmin = await this.userRepository.existsByEmail(
+      admin.getEmail(),
+    );
+
+    if (!existsAdmin) {
+      await this.userRepository.create(admin);
+    }
+
+    const existsModerator = await this.userRepository.existsByEmail(
+      moderator.getEmail(),
+    );
+
+    if (!existsModerator) {
+      await this.userRepository.create(moderator);
+    }
   }
 
   private createAnAdministrator(email: string): User {

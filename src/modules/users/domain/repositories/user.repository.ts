@@ -9,5 +9,4 @@ export abstract class UserRepository {
   abstract findByIdOrThrow(userId: UserId): Promise<User>;
   abstract findByEmail(email: UserEmail): Promise<User | null>;
   abstract existsByEmail(email: UserEmail): Promise<boolean>;
-  abstract upsert(user: User): Promise<void>;
 }
