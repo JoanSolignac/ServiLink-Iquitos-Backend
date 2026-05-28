@@ -87,7 +87,7 @@ export class PrismaUserRepository implements UserRepository {
 
   async upsert(user: User): Promise<void> {
     await this.prisma.user.upsert({
-      where: { id: user.getId().toPrimitives() },
+      where: { email: user.getEmail().toPrimitives() },
       create: toPersistenceUser(user),
       update: toPersistenceUser(user),
     });

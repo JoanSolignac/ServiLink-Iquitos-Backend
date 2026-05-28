@@ -10,7 +10,7 @@ Repositorio del backend desarrollado para la gestión operativa de Servilink Iqu
 
 El proyecto ha sido desarrollado sobre las siguientes tecnologías y herramientas:
 
-- **Node.js:** 22.22 LTS
+- **Node.js:** 22 LTS
 - **Framework:** NestJS 11
 - **Lenguaje:** TypeScript 5.7
 - **Validación de Datos:** class-validator, class-transformer, Joi
@@ -20,6 +20,7 @@ El proyecto ha sido desarrollado sobre las siguientes tecnologías y herramienta
 - **Almacenamiento de Archivos:** Supabase Storage (`@supabase/supabase-js`)
 - **Hashing:** Argon2 (`argon2`)
 - **Linting y Formato:** ESLint 9, Prettier 3
+- **Testing:** Jest 30
 - **Gestor de Paquetes:** Yarn
 - **Base de datos:** PostgreSQL
 - **Contenedores:** Docker Engine & Docker Compose (opcional)
@@ -28,10 +29,10 @@ El proyecto ha sido desarrollado sobre las siguientes tecnologías y herramienta
 
 Para la ejecución local del proyecto, el entorno de desarrollo deberá contar con lo siguiente:
 
-- **Node.js:** versión 22.22 LTS.
+- **Node.js:** versión 22 LTS.
 - **Yarn:** compatible con la versión de Node.js instalada.
 - **PostgreSQL:** puedes usar Docker Compose (incluido en el proyecto) o una instalación local/externa de PostgreSQL.
-- **Docker Engine:** requerido solo si deseas levantar los servicios mediante contenedores.
+- **Docker Engine:** requerido solo si deseas levantar la base de datos mediante contenedores.
 
 ## Instalación de Dependencias
 
@@ -66,7 +67,7 @@ yarn start:prod
 
 ## Docker Compose (opcional)
 
-Si prefieres levantar los servicios de desarrollo mediante contenedores, ejecuta:
+Si prefieres levantar la base de datos de desarrollo mediante contenedores, ejecuta:
 
 ```bash
 docker compose up -d
@@ -221,13 +222,15 @@ Gestión de la autenticación de usuarios federados mediante Auth0, control de r
 
 > **Nota sobre `MeResponseDto`:** La respuesta de `GET /auth/me` incluye el campo `hasProfile: boolean`, que permite al cliente detectar si el usuario ya completó su perfil o debe ser redirigido al formulario de bienvenida.
 
+> **Nota sobre `PasswordHash` y `RefreshTokenHash`:** Estos value objects existen en la capa de dominio como preparación para futuras extensiones, pero la entidad `AuthIdentity` actual no los utiliza dado que la autenticación es 100 % federada mediante Auth0.
+
 #### `ProfilesModule`
 
 Gestión de perfiles de usuario, incluyendo datos personales, biografía y foto de perfil almacenada en Supabase Storage.
 
 | Capa | Contenido |
 |---|---|
-| **Domain** | Entidad `Profile`, value objects `ProfileFirstName` / `ProfileLastName` / `ProfileBirthDate` / `ProfilePhone` / `ProfileAddress` / `ProfileBio` / `ProfilePictureUrl`, puerto `ProfileRepository`, 7 excepciones de dominio |
+| **Domain** | Entidad `Profile`, value objects `ProfileFirstName` / `ProfileLastName` / `ProfileBirthDate` / `ProfilePhone` / `ProfileAddress` / `ProfileBio` / `ProfilePictureUrl`, puerto `ProfileRepository`, 8 excepciones de dominio |
 | **Application** | 3 casos de uso: `CreateProfileUseCase`, `UpdateProfileUseCase`, `FindProfileByUserIdUseCase`. Ambos casos de escritura consumen el puerto `FileStorage` (no dependen directamente de Supabase) |
 | **Infrastructure** | Repositorio `PrismaProfileRepository`, mapper `PrismaProfileMapper` |
 | **Presentation** | Controlador `ProfileController`, DTOs request: `CreateProfileRequestDto` / `UpdateProfileRequestDto`; DTO response: `ProfileResponseDto`; presenter `ProfilePresenter`; pipe `ProfilePictureValidationPipe` |
@@ -240,8 +243,8 @@ Gestión del marketplace de servicios: publicación, aprobación, listado y bús
 
 | Capa | Contenido |
 |---|---|
-| **Domain** | Entidad `Service`, value objects `ServiceId` / `ServiceTitle` / `ServiceDescription` / `ServicePrice`, enum `ServiceStatus`, puerto `ServiceRepository`, 4 excepciones de dominio |
-| **Application** | Servicio `ServiceFinderService`, 7 casos de uso: `CreateServiceUseCase`, `UpdateServiceUseCase`, `FindServiceByIdUseCase`, `ListPublicServicesUseCase`, `ListMyServicesUseCase`, `ListAdminServicesUseCase`, `ApproveServiceUseCase`, `RejectServiceUseCase` |
+| **Domain** | Entidad `Service`, value objects `ServiceId` / `ServiceTitle` / `ServiceDescription` / `ServicePrice`, campo `keywords` (`String[]`), enum `ServiceStatus`, puerto `ServiceRepository`, 5 excepciones de dominio |
+| **Application** | Servicio `ServiceFinderService`, 8 casos de uso: `CreateServiceUseCase`, `UpdateServiceUseCase`, `FindServiceByIdUseCase`, `ListPublicServicesUseCase`, `ListMyServicesUseCase`, `ListAdminServicesUseCase`, `ApproveServiceUseCase`, `RejectServiceUseCase` |
 | **Infrastructure** | Repositorio `PrismaServiceRepository`, mapper `PrismaServiceMapper` |
 | **Presentation** | Controlador `ServiceController`, DTOs request: `CreateServiceRequestDto` / `UpdateServiceRequestDto`; DTOs query: `ListPublicServicesQueryDto` / `ListMyServicesQueryDto` / `ListAdminServicesQueryDto`; DTO response: `ServiceResponseDto`; presenter `ServicePresenter` |
 
@@ -253,3 +256,15 @@ Gestión del marketplace de servicios: publicación, aprobación, listado y bús
 > Esta separación elimina toda lógica condicional de roles y estados de la capa de aplicación, dejando cada caso de uso con una única responsabilidad bien definida.
 
 > **Nota sobre la paginación:** Los tres endpoints de listado consumen el value object `Pagination`, que aplica los límites globales definidos en `PAGINATION_DEFAULTS` y sanea automáticamente valores inválidos.
+
+### Otros componentes
+
+#### `SeederModule`
+
+Inicialización automática de datos base. Se ejecuta al arrancar la aplicación (`OnModuleInit`) y garantiza la existencia de usuarios administrativos mínimos en el sistema.
+
+| Capa | Contenido |
+|---|---|
+| **Application** | `SeederService`: crea o actualiza (upsert) un usuario `ADMINISTRATOR` y un `MODERATOR` mediante transacción atómica |
+
+> **Nota:** Los emails de los usuarios seed están hardcodeados en el servicio. Si deseas personalizarlos, modifica `src/seeder/seeder.service.ts` antes del primer arranque.
