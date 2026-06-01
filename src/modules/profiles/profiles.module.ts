@@ -1,22 +1,19 @@
 import { Module } from '@nestjs/common';
-import { ProfileRepository } from './domain/repositories/profile.repository';
-import { PrismaProfileRepository } from './infrastructure/repositories/prisma-profile.repository';
-import { ProfileController } from './presentation/controllers/profile.controller';
-import { CreateProfileUseCase } from './application/use-cases/create-profile.use-case';
-import { UpdateProfileUseCase } from './application/use-cases/update-profile.use-case';
-import { FindProfileByUserIdUseCase } from './application/use-cases/find-profile-by-user-id.use-case';
+import { PrismaModule } from '../../prisma/prisma.module';
+import { SupabaseModule } from '../../supabase/supabase.module';
+import { ProfilesController } from './profiles.controller';
+import { FindProfileByUserIdFeature } from './features/find-profile-by-user-id.feature';
+import { CreateProfileFeature } from './features/create-profile.feature';
+import { UpdateProfileFeature } from './features/update-profile.feature';
 
 @Module({
-  controllers: [ProfileController],
+  imports: [PrismaModule, SupabaseModule],
+  controllers: [ProfilesController],
   providers: [
-    {
-      provide: ProfileRepository,
-      useClass: PrismaProfileRepository,
-    },
-    CreateProfileUseCase,
-    UpdateProfileUseCase,
-    FindProfileByUserIdUseCase,
+    FindProfileByUserIdFeature,
+    CreateProfileFeature,
+    UpdateProfileFeature,
   ],
-  exports: [FindProfileByUserIdUseCase, ProfileRepository],
+  exports: [FindProfileByUserIdFeature],
 })
 export class ProfilesModule {}

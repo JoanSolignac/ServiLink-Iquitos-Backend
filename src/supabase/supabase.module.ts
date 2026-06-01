@@ -1,7 +1,6 @@
 import { Module, Global } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
-import { FileStorage } from '../shared/abstractions/file-storage.abstract';
 import { SupabaseStorageService } from './services/supabase-storage.service';
 
 @Global()
@@ -18,11 +17,8 @@ import { SupabaseStorageService } from './services/supabase-storage.service';
       },
       inject: [ConfigService],
     },
-    {
-      provide: FileStorage,
-      useClass: SupabaseStorageService,
-    },
+    SupabaseStorageService,
   ],
-  exports: [FileStorage, SupabaseClient],
+  exports: [SupabaseStorageService, SupabaseClient],
 })
 export class SupabaseModule {}

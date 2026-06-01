@@ -65,6 +65,30 @@ yarn start:dev
 yarn start:prod
 ```
 
+## Documentación de API (Swagger / OpenAPI)
+
+El proyecto expone documentación interactiva de la API mediante **Swagger UI**.
+
+- Una vez levantado el servidor, la documentación estará disponible en: `{GLOBAL_PREFIX}/api/docs`
+  - Ejemplo: `http://localhost:3000/api/v1/api/docs`
+- La autenticación en Swagger se configura con un **Bearer Token** de Auth0 (JWT).
+- Cada controlador y DTO debe estar anotado con los decoradores de `@nestjs/swagger` para que aparezca correctamente en la documentación.
+
+### Decoradores requeridos
+
+| Ubicación | Decorador | Propósito |
+|---|---|---|
+| Controlador (clase) | `@ApiTags('Nombre')` | Agrupa endpoints bajo una etiqueta |
+| Controlador (clase) | `@ApiBearerAuth('bearer')` | Indica que requiere autenticación Bearer |
+| Handler (método) | `@ApiOperation({ summary: '...' })` | Describe brevemente el endpoint |
+| Handler (método) | `@ApiResponse({ status: 200, type: Dto })` | Documenta respuesta exitosa |
+| Handler (método) | `@ApiParam({ name: 'id' })` | Documenta parámetros de ruta |
+| Handler (método) | `@ApiBody({ type: RequestDto })` | Documenta el cuerpo de la petición |
+| DTO (campo) | `@ApiProperty({ example: ... })` | Documenta propiedades del esquema |
+| DTO (campo) | `@ApiPropertyOptional({ ... })` | Documenta propiedades opcionales |
+
+> **Convención:** Para respuestas paginadas, se debe crear un DTO concreto por entidad (ej. `ServicePaginatedResponseDto`) con `@ApiProperty({ type: [EntityResponseDto] })` para que Swagger infiera correctamente el esquema.
+
 ## Docker Compose (opcional)
 
 Si prefieres levantar la base de datos de desarrollo mediante contenedores, ejecuta:
@@ -124,138 +148,118 @@ El proyecto valida estrictamente las variables de entorno mediante un esquema Jo
 
 > **Atención:** Valores como `api/V1` (con mayúscula) harán fallar la validación del esquema Joi.
 
-## Arquitectura y Convenciones
+## Estructura del Proyecto
 
-El proyecto sigue el paradigma de **Arquitectura Hexagonal**, aplicando principios de **Domain-Driven Design (DDD)** y **Clean Code**. La estructura garantiza que la capa de dominio sea independiente de frameworks, librerías y detalles de infraestructura.
+El proyecto está organizado como una aplicación NestJS estándar, agrupada por módulos funcionales. Cada módulo encapsula su propio dominio de negocio y se estructura internamente en controladores, features (lógica de negocio), DTOs y excepciones.
 
-### Capas del proyecto
+### Organización de carpetas
 
-| Capa | Responsabilidad | Ubicación típica |
-|---|---|---|
-| **Domain** | Reglas de negocio puras: entidades, value objects, puertos (interfaces/abstractas), excepciones de dominio, domain services. | `*/domain/*` |
-| **Application** | Orquestación de casos de uso, servicios de aplicación, coordinación entre dominio e infraestructura. | `*/application/*` |
-| **Infrastructure** | Adaptadores concretos: repositorios (implementaciones), ORM/DB, mappers, generadores, configuración externa. | `*/infrastructure/*` |
-| **Presentation** | Punto de entrada HTTP: controladores, DTOs (request/response), presenters. Dependen de librerías de framework para validación y serialización. | `*/presentation/*` |
-
-> **Nota sobre DTOs:** Los DTOs residen en `presentation/dto/` porque dependen de librerías de framework para validación y serialización, y pertenecen a la capa de entrada del sistema.
-
-> **Nota sobre `shared/`:** El módulo transversal `shared/` no sigue la estructura de capas `domain/application/infrastructure`. En su lugar, organiza su contenido por tipo: `abstractions/` (puertos), `value-objects/`, `exceptions/`, `enums/`, `config/` y `constants/`. Los adaptadores concretos residen fuera de `shared/` (ej. `uuid/`, `prisma/`).
+```
+src/
+├── modules/
+│   ├── auth/           # Autenticación y sincronización de usuarios
+│   ├── profiles/       # Perfiles de usuario y fotos de perfil
+│   ├── services/       # Marketplace de servicios
+│   └── users/          # Gestión de usuarios (sin endpoints HTTP)
+├── common/             # Filtros, guards, decoradores, pipes, utilidades
+├── prisma/             # Configuración y servicio de Prisma
+├── seeder/             # Inicialización de datos base
+└── supabase/           # Cliente y servicio de almacenamiento
+```
 
 ### Convenciones de nomenclatura
 
 | Concepto | Convención | Ejemplo |
 |---|---|---|
-| Value Object | `*.value-object.ts` | `order-id.value-object.ts` |
-| Entidad | `*.entity.ts` | `order.entity.ts` |
-| Puerto / Interfaz abstracta | `*.abstract.ts` | `payment-gateway.abstract.ts` |
-| Excepción de dominio | `*.exception.ts` | `insufficient-stock.exception.ts` |
-| Enum de errores | `*.enum.ts` | `domain-error-code.enum.ts` |
-| Adaptador / Implementación | Descriptivo del motor/librería | `stripe-payment.adapter.ts`, `prisma-user.repository.ts` |
-| Mapper | `*.mapper.ts` | `prisma-user.mapper.ts` |
-| Módulo NestJS | `*.module.ts` | `uuid.module.ts`, `prisma.module.ts` |
+| Módulo NestJS | `*.module.ts` | `services.module.ts` |
+| Controlador | `*.controller.ts` | `services.controller.ts` |
+| Feature (lógica de negocio) | `*.feature.ts` | `create-service.feature.ts` |
 | Servicio NestJS | `*.service.ts` | `prisma.service.ts` |
-| Transaction Manager | `*-transaction-manager.ts` | `prisma-transaction-manager.ts` |
-| DTO de request (body) | `*.request.dto.ts` | `change-user-role.request.dto.ts` |
+| DTO de request (body) | `*.request.dto.ts` | `create-service.request.dto.ts` |
 | DTO de query params | `*.query.dto.ts` | `list-public-services.query.dto.ts` |
-| DTO de response | `*.response.dto.ts` | `user.response.dto.ts` |
-| Presenter | `*.presenter.ts` | `user.presenter.ts` |
-| Controlador | `*.controller.ts` | `user.controller.ts` |
-| Configuración | `*.config.ts` | `database.config.ts` |
-| Schema de validación | `validation.schema.ts` o `*.schema.ts` | `env-validation.schema.ts` |
-| Constantes globales | `*.constants.ts` | `pagination.constants.ts` |
+| DTO de response | `*.response.dto.ts` | `service.response.dto.ts` |
+| Excepción de dominio | `*.exception.ts` | `service-not-found.exception.ts` |
+| Enum | `*.enum.ts` | `domain-error-code.enum.ts` |
+| Guard | `*.guard.ts` | `jwt-auth.guard.ts` |
+| Decorador | `*.decorator.ts` | `current-user.decorator.ts` |
+| Pipe | `*.pipe.ts` | `profile-picture-validation.pipe.ts` |
+| Configuración | `*.config.ts` | `validation.schema.ts` |
+| Utilidad | `*.util.ts` | `pagination.util.ts` |
 
 ### Detalles técnicos transversales
 
 - **Prisma Driver Adapter:** La conexión a PostgreSQL utiliza el adapter oficial `@prisma/adapter-pg` junto con un pool nativo de `pg`, en lugar del query engine binario estándar de Prisma.
-- **Identificadores:** Todas las entidades del dominio usan **UUID v7** (no v4), generados mediante `UuidV7IdGenerator` a través del puerto `IdGenerator`.
-- **Paginación:** Centralizada en el value object `Pagination`, que consume las constantes globales definidas en `PAGINATION_DEFAULTS` (`PAGE: 1`, `LIMIT: 10`, `MAX_LIMIT: 100`). El VO sanea valores inválidos y aplica el límite máximo automáticamente.
-- **Transacciones:** El puerto `TransactionManager` (implementado por `PrismaTransactionManager`) permite ejecutar operaciones multi-repositorio de forma atómica. Se utiliza, por ejemplo, en la sincronización de identidades federadas.
+- **Paginación:** Centralizada en `src/common/utils/pagination.util.ts`. Aplica valores por defecto (`page: 1`, `limit: 10`) y un límite máximo de 100 elementos por página.
 - **Logging:** Un interceptor global (`LoggingInterceptor`) registra el body y el código de estado de cada petición/respuesta HTTP.
-- **Sincronización de usuarios:** Cada validación de JWT dispara automáticamente `SyncUserUseCase`, que crea o vincula el usuario local en base de datos si aún no existe (federated identity sync).
+- **Sincronización de usuarios:** Cada validación de JWT dispara automáticamente `SyncUserFeature`, que crea o vincula el usuario local en base de datos si aún no existe (federated identity sync).
 
 ## Módulos del Proyecto
 
-Cada módulo del sistema representa un bounded context o un conjunto de responsabilidades transversales. Todos siguen la misma estructura de capas descrita en la sección de Arquitectura.
+Cada módulo representa un dominio de negocio y agrupa controladores, features, DTOs y excepciones relacionadas.
 
-### Módulos transversales
+### `UsersModule`
 
-Son aquellos que proporcionan building blocks base reutilizables por cualquier bounded context. No contienen reglas de negocio específicas de un dominio, sino utilidades técnicas y de infraestructura compartida.
+Gestión del ciclo de vida de usuarios del sistema: consulta, actualización de rol/email y gestión de estado (activar, suspender, restaurar).
 
-| Módulo | Responsabilidad |
+> **Nota importante:** Este módulo **no expone endpoints HTTP**. Sus features son consumidos internamente por otros módulos (principalmente `AuthModule` durante la sincronización de identidades federadas).
+
+| Componente | Descripción |
 |---|---|
-| `UuidModule` | Generación de IDs UUID v7. Expone el puerto `IdGenerator`. Módulo global (`@Global()`), importado en `AppModule`. |
-| `PrismaModule` | Conexión a PostgreSQL via Prisma ORM y gestión de transacciones. Expone `PrismaService` y el puerto `TransactionManager`. Módulo global (`@Global()`), importado en `AppModule`. |
-| `HashModule` | Encriptación y validación de hashes mediante el algoritmo Argon2. Expone el puerto `HashService`. Módulo global (`@Global()`), importado en `AppModule`. |
-| `SupabaseModule` | Conexión a Supabase Storage y gestión de archivos. Expone el puerto `FileStorage` (abstracción de almacenamiento) y el cliente `SupabaseClient`. Módulo global (`@Global()`), importado en `AppModule`. |
+| **Features** | `FindUserById`, `FindUserByEmail`, `ChangeUserRole`, `UpdateUserEmail`, `ActivateUser`, `DeactivateUser`, `SuspendUser`, `RestoreUser` |
+| **DTOs** | `UserResponseDto` |
+| **Excepciones** | `UserNotFoundException`, `UserEmailAlreadyExistsException`, `UserAlreadyActiveException`, `UserAlreadyInactiveException`, `UserAlreadySuspendedException`, `UserNotSuspendedException`, `UserSuspendedException` |
 
-> **Nota sobre `FileStorage`:** Es una abstracción ubicada en `shared/abstractions/file-storage.abstract.ts` que define los contratos `upload()` y `delete()`. Su implementación concreta (`SupabaseStorageService`) reside en `src/supabase/services/`. Esto permite que los casos de uso del dominio no dependan directamente de Supabase, facilitando futuros cambios de proveedor de almacenamiento.
+> **Nota sobre `UserRole`:** El enum `UserRole` proviene de Prisma (`@prisma/client`) y se utiliza tanto en el módulo de usuarios como en los guards y decoradores de autenticación.
 
-### Módulos de dominio
-
-Representan bounded contexts específicos del negocio. Cada uno encapsula su propio modelo de dominio, casos de uso y adaptadores de infraestructura.
-
-#### `UsersModule`
-
-Gestión del ciclo de vida de usuarios del sistema: registro, consulta, actualización y gestión de estado/rol.
-
-> **Nota importante:** Este módulo **no expone endpoints HTTP**. Sus casos de uso son consumidos internamente por otros módulos (principalmente `AuthModule` durante la sincronización de identidades federadas).
-
-| Capa | Contenido |
-|---|---|
-| **Domain** | Entidad `User`, value objects `UserId` / `UserEmail`, enums `UserStatus`, puerto `UserRepository`, 9 excepciones de dominio |
-| **Application** | Servicio `UserFinderService`, 8 casos de uso: `FindUserById`, `FindUserByEmail`, `ChangeUserRole`, `UpdateUserEmail`, `ActivateUser`, `DeactivateUser`, `SuspendUser`, `RestoreUser` |
-| **Infrastructure** | Repositorio `PrismaUserRepository`, mapper `PrismaUserMapper` |
-| **Presentation** | DTOs request: `ChangeUserRole` / `UpdateUserEmail`; DTO response: `UserResponse`; presenter `UserPresenter` |
-
-> **Nota sobre `UserRole`:** El enum `UserRole` fue trasladado a `src/shared/enums/user-role.enum.ts` para posibilitar su consumo transversal tanto por el módulo de usuarios como por los guards y decoradores de autenticación.
-
-#### `AuthModule`
+### `AuthModule`
 
 Gestión de la autenticación de usuarios federados mediante Auth0, control de roles y sincronización de identidades.
 
-| Capa | Contenido |
+| Componente | Descripción |
 |---|---|
-| **Domain** | Entidad `AuthIdentity`, value objects `AuthIdentityId` / `AuthProvider` / `PasswordHash` / `ProviderId` / `RefreshTokenHash`, interfaces `AuthCurrentUser` / `Auth0PayloadInterface`, puerto `AuthIdentityRepository` |
-| **Application** | Servicio `AuthIdentityFinderService`, caso de uso `SyncUserUseCase` |
-| **Infrastructure** | Repositorio `PrismaAuthIdentityRepository`, mapper `PrismaAuthIdentityMapper`, guards `JwtAuthGuard` / `RoleGuard`, decoradores `CurrentUser` / `Role` / `UseAuth`, estrategia `Auth0Strategy` |
-| **Presentation** | DTO response `MeResponseDto`; presenter `MePresenter`; controlador `AuthController` |
+| **Controller** | `AuthController` — expone `GET /auth/me` |
+| **Features** | `SyncUserFeature` — sincroniza identidad federada con base de datos local |
+| **Strategies** | `Auth0Strategy` — estrategia Passport JWT con JWKS de Auth0 |
+| **Guards** | `JwtAuthGuard`, `RoleGuard` |
+| **Decoradores** | `@CurrentUser`, `@UseAuth` |
+| **DTOs** | `MeResponseDto` |
+| **Excepciones** | `AuthIdentityNotFoundException`, `InvalidProviderException` |
 
 > **Nota sobre `MeResponseDto`:** La respuesta de `GET /auth/me` incluye el campo `hasProfile: boolean`, que permite al cliente detectar si el usuario ya completó su perfil o debe ser redirigido al formulario de bienvenida.
 
-> **Nota sobre `PasswordHash` y `RefreshTokenHash`:** Estos value objects existen en la capa de dominio como preparación para futuras extensiones, pero la entidad `AuthIdentity` actual no los utiliza dado que la autenticación es 100 % federada mediante Auth0.
-
-#### `ProfilesModule`
+### `ProfilesModule`
 
 Gestión de perfiles de usuario, incluyendo datos personales, biografía y foto de perfil almacenada en Supabase Storage.
 
-| Capa | Contenido |
+| Componente | Descripción |
 |---|---|
-| **Domain** | Entidad `Profile`, value objects `ProfileFirstName` / `ProfileLastName` / `ProfileBirthDate` / `ProfilePhone` / `ProfileAddress` / `ProfileBio` / `ProfilePictureUrl`, puerto `ProfileRepository`, 8 excepciones de dominio |
-| **Application** | 3 casos de uso: `CreateProfileUseCase`, `UpdateProfileUseCase`, `FindProfileByUserIdUseCase`. Ambos casos de escritura consumen el puerto `FileStorage` (no dependen directamente de Supabase) |
-| **Infrastructure** | Repositorio `PrismaProfileRepository`, mapper `PrismaProfileMapper` |
-| **Presentation** | Controlador `ProfileController`, DTOs request: `CreateProfileRequestDto` / `UpdateProfileRequestDto`; DTO response: `ProfileResponseDto`; presenter `ProfilePresenter`; pipe `ProfilePictureValidationPipe` |
+| **Controller** | `ProfilesController` — `POST /profiles`, `GET /profiles/me`, `GET /profiles/:userId`, `PATCH /profiles/me` |
+| **Features** | `CreateProfileFeature`, `UpdateProfileFeature`, `FindProfileByUserIdFeature` |
+| **DTOs** | `CreateProfileRequestDto`, `UpdateProfileRequestDto`, `ProfileResponseDto` |
+| **Excepciones** | `ProfileAlreadyExistsException`, `ProfileNotFoundException` |
+| **Pipes** | `ProfilePictureValidationPipe` |
 
-> **Nota sobre la foto de perfil:** Al actualizar (`PATCH /profiles/me`), si se envía una nueva imagen, el caso de uso sube la nueva foto a Supabase, actualiza la URL en la base de datos y elimina automáticamente la imagen anterior del bucket para evitar archivos huérfanos.
+> **Nota sobre la foto de perfil:** Al actualizar (`PATCH /profiles/me`), si se envía una nueva imagen, el feature sube la nueva foto a Supabase Storage, actualiza la URL en la base de datos y elimina automáticamente la imagen anterior del bucket para evitar archivos huérfanos.
 
-#### `ServicesModule`
+### `ServicesModule`
 
 Gestión del marketplace de servicios: publicación, aprobación, listado y búsqueda de servicios ofrecidos por los usuarios.
 
-| Capa | Contenido |
+| Componente | Descripción |
 |---|---|
-| **Domain** | Entidad `Service`, value objects `ServiceId` / `ServiceTitle` / `ServiceDescription` / `ServicePrice`, campo `keywords` (`String[]`), enum `ServiceStatus`, puerto `ServiceRepository`, 5 excepciones de dominio |
-| **Application** | Servicio `ServiceFinderService`, 8 casos de uso: `CreateServiceUseCase`, `UpdateServiceUseCase`, `FindServiceByIdUseCase`, `ListPublicServicesUseCase`, `ListMyServicesUseCase`, `ListAdminServicesUseCase`, `ApproveServiceUseCase`, `RejectServiceUseCase` |
-| **Infrastructure** | Repositorio `PrismaServiceRepository`, mapper `PrismaServiceMapper` |
-| **Presentation** | Controlador `ServiceController`, DTOs request: `CreateServiceRequestDto` / `UpdateServiceRequestDto`; DTOs query: `ListPublicServicesQueryDto` / `ListMyServicesQueryDto` / `ListAdminServicesQueryDto`; DTO response: `ServiceResponseDto`; presenter `ServicePresenter` |
+| **Controller** | `ServicesController` — `POST /services`, `PATCH /services/:id`, `GET /services`, `GET /services/me`, `GET /services/admin`, `GET /services/:id`, `PATCH /services/:id/approve`, `PATCH /services/:id/reject` |
+| **Features** | `CreateServiceFeature`, `UpdateServiceFeature`, `FindServiceByIdFeature`, `ListPublicServicesFeature`, `ListMyServicesFeature`, `ListAdminServicesFeature`, `ApproveServiceFeature`, `RejectServiceFeature` |
+| **DTOs** | `CreateServiceRequestDto`, `UpdateServiceRequestDto`, `ListPublicServicesQueryDto`, `ListMyServicesQueryDto`, `ServiceResponseDto`, `ServicePaginatedResponseDto` |
+| **Excepciones** | `ServiceNotFoundException`, `ServiceUnauthorizedException`, `ServiceAlreadyApprovedException` |
 
-> **Nota sobre los listados de servicios:** El módulo implementa tres estrategias de listado especializadas, cada una con su propio caso de uso y DTO de query:
-> - `ListPublicServicesUseCase`: expuesto en `GET /services`. Siempre filtra por `APPROVED` y es agnóstico al `userId`.
-> - `ListMyServicesUseCase`: expuesto en `GET /services/me`. Siempre filtra por el usuario autenticado y permite filtrar opcionalmente por `status`.
-> - `ListAdminServicesUseCase`: expuesto en `GET /services/admin`. Requiere rol `MODERATOR` o `ADMINISTRATOR`. Permite filtrar libremente por `status` y `userId`.
+> **Nota sobre los listados de servicios:** El módulo implementa tres estrategias de listado especializadas, cada una con su propio feature y DTO de query:
+> - `GET /services` (`ListPublicServicesFeature`): siempre filtra por `APPROVED` y es agnóstico al `userId`.
+> - `GET /services/me` (`ListMyServicesFeature`): siempre filtra por el usuario autenticado y permite filtrar opcionalmente por `status`.
+> - `GET /services/admin` (`ListAdminServicesFeature`): requiere rol `MODERATOR` o `ADMINISTRATOR`. Devuelve servicios en estado `REQUIRE_REVIEW`.
 >
-> Esta separación elimina toda lógica condicional de roles y estados de la capa de aplicación, dejando cada caso de uso con una única responsabilidad bien definida.
+> Esta separación mantiene cada feature con una única responsabilidad bien definida.
 
-> **Nota sobre la paginación:** Los tres endpoints de listado consumen el value object `Pagination`, que aplica los límites globales definidos en `PAGINATION_DEFAULTS` y sanea automáticamente valores inválidos.
+> **Nota sobre la paginación:** Los tres endpoints de listado aplican paginación mediante `resolvePagination` con valores por defecto (`page: 1`, `limit: 10`) y un límite máximo de 100.
 
 ### Otros componentes
 
@@ -263,8 +267,8 @@ Gestión del marketplace de servicios: publicación, aprobación, listado y bús
 
 Inicialización automática de datos base. Se ejecuta al arrancar la aplicación (`OnModuleInit`) y garantiza la existencia de usuarios administrativos mínimos en el sistema.
 
-| Capa | Contenido |
+| Componente | Descripción |
 |---|---|
-| **Application** | `SeederService`: crea o actualiza (upsert) un usuario `ADMINISTRATOR` y un `MODERATOR` mediante transacción atómica |
+| **Service** | `SeederService`: crea usuarios `ADMINISTRATOR` y `MODERATOR` si no existen |
 
 > **Nota:** Los emails de los usuarios seed están hardcodeados en el servicio. Si deseas personalizarlos, modifica `src/seeder/seeder.service.ts` antes del primer arranque.
