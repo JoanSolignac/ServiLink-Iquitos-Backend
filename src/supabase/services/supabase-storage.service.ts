@@ -1,13 +1,16 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { SupabaseClient } from '@supabase/supabase-js';
-import {
-  FileStorage,
-  FileStorageUploadParams,
-} from '../../shared/abstractions/file-storage.abstract';
+
+export interface FileStorageUploadParams {
+  file: Buffer;
+  fileName: string;
+  contentType: string;
+  folder?: string;
+}
 
 @Injectable()
-export class SupabaseStorageService implements FileStorage {
+export class SupabaseStorageService {
   constructor(
     private readonly supabase: SupabaseClient,
     private readonly configService: ConfigService,

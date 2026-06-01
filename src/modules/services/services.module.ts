@@ -1,34 +1,27 @@
 import { Module } from '@nestjs/common';
-import { ServiceRepository } from './domain/repositories/service.repository';
-import { PrismaServiceRepository } from './infrastructure/repositories/prisma-service.repository';
-import { ServiceFinderService } from './application/services/service-finder.service';
-import { CreateServiceUseCase } from './application/use-cases/create-service.use-case';
-import { UpdateServiceUseCase } from './application/use-cases/update-service.use-case';
-import { ApproveServiceUseCase } from './application/use-cases/approve-service.use-case';
-import { RejectServiceUseCase } from './application/use-cases/reject-service.use-case';
-import { ListPublicServicesUseCase } from './application/use-cases/list-public-services.use-case';
-import { ListMyServicesUseCase } from './application/use-cases/list-my-services.use-case';
-import { ListAdminServicesUseCase } from './application/use-cases/list-admin-services.use-case';
-import { FindServiceByIdUseCase } from './application/use-cases/find-service-by-id.use-case';
-import { ServiceController } from './presentation/controllers/service.controller';
+import { PrismaModule } from '../../prisma/prisma.module';
+import { ServicesController } from './services.controller';
+import { CreateServiceFeature } from './features/create-service.feature';
+import { UpdateServiceFeature } from './features/update-service.feature';
+import { ApproveServiceFeature } from './features/approve-service.feature';
+import { RejectServiceFeature } from './features/reject-service.feature';
+import { FindServiceByIdFeature } from './features/find-service-by-id.feature';
+import { ListPublicServicesFeature } from './features/list-public-services.feature';
+import { ListMyServicesFeature } from './features/list-my-services.feature';
+import { ListAdminServicesFeature } from './features/list-admin-services.feature';
 
 @Module({
-  controllers: [ServiceController],
+  imports: [PrismaModule],
+  controllers: [ServicesController],
   providers: [
-    {
-      provide: ServiceRepository,
-      useClass: PrismaServiceRepository,
-    },
-    ServiceFinderService,
-    CreateServiceUseCase,
-    UpdateServiceUseCase,
-    ApproveServiceUseCase,
-    RejectServiceUseCase,
-    ListPublicServicesUseCase,
-    ListMyServicesUseCase,
-    ListAdminServicesUseCase,
-    FindServiceByIdUseCase,
+    CreateServiceFeature,
+    UpdateServiceFeature,
+    ApproveServiceFeature,
+    RejectServiceFeature,
+    FindServiceByIdFeature,
+    ListPublicServicesFeature,
+    ListMyServicesFeature,
+    ListAdminServicesFeature,
   ],
-  exports: [ServiceRepository],
 })
 export class ServicesModule {}

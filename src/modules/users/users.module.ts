@@ -1,32 +1,35 @@
 import { Module } from '@nestjs/common';
-import { UserRepository } from './domain/repositories/user.repository';
-import { PrismaUserRepository } from './infrastructure/repositories/prisma-user.repository';
-import { UserFinderService } from './application/services/user-finder.service';
-import { FindUserByIdUseCase } from './application/use-cases/find-user-by-id.use-case';
-import { FindUserByEmailUseCase } from './application/use-cases/find-user-by-email.use-case';
-import { UpdateUserEmailUseCase } from './application/use-cases/update-user-email.use-case';
-import { ChangeUserRoleUseCase } from './application/use-cases/change-user-role.use-case';
-import { ActivateUserUseCase } from './application/use-cases/activate-user.use-case';
-import { DeactivateUserUseCase } from './application/use-cases/deactivate-user.use-case';
-import { SuspendUserUseCase } from './application/use-cases/suspend-user.use-case';
-import { RestoreUserUseCase } from './application/use-cases/restore-user.use-case';
+import { PrismaModule } from '../../prisma/prisma.module';
+import { FindUserByIdFeature } from './features/find-user-by-id.feature';
+import { FindUserByEmailFeature } from './features/find-user-by-email.feature';
+import { UpdateUserEmailFeature } from './features/update-user-email.feature';
+import { ChangeUserRoleFeature } from './features/change-user-role.feature';
+import { ActivateUserFeature } from './features/activate-user.feature';
+import { DeactivateUserFeature } from './features/deactivate-user.feature';
+import { SuspendUserFeature } from './features/suspend-user.feature';
+import { RestoreUserFeature } from './features/restore-user.feature';
 
 @Module({
+  imports: [PrismaModule],
   providers: [
-    {
-      provide: UserRepository,
-      useClass: PrismaUserRepository,
-    },
-    UserFinderService,
-    FindUserByIdUseCase,
-    FindUserByEmailUseCase,
-    UpdateUserEmailUseCase,
-    ChangeUserRoleUseCase,
-    ActivateUserUseCase,
-    DeactivateUserUseCase,
-    SuspendUserUseCase,
-    RestoreUserUseCase,
+    FindUserByIdFeature,
+    FindUserByEmailFeature,
+    UpdateUserEmailFeature,
+    ChangeUserRoleFeature,
+    ActivateUserFeature,
+    DeactivateUserFeature,
+    SuspendUserFeature,
+    RestoreUserFeature,
   ],
-  exports: [FindUserByEmailUseCase, UserRepository],
+  exports: [
+    FindUserByIdFeature,
+    FindUserByEmailFeature,
+    UpdateUserEmailFeature,
+    ChangeUserRoleFeature,
+    ActivateUserFeature,
+    DeactivateUserFeature,
+    SuspendUserFeature,
+    RestoreUserFeature,
+  ],
 })
 export class UsersModule {}

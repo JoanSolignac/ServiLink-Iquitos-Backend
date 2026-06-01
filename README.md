@@ -65,6 +65,30 @@ yarn start:dev
 yarn start:prod
 ```
 
+## Documentación de API (Swagger / OpenAPI)
+
+El proyecto expone documentación interactiva de la API mediante **Swagger UI**.
+
+- Una vez levantado el servidor, la documentación estará disponible en: `{GLOBAL_PREFIX}/api/docs`
+  - Ejemplo: `http://localhost:3000/api/v1/api/docs`
+- La autenticación en Swagger se configura con un **Bearer Token** de Auth0 (JWT).
+- Cada controlador y DTO debe estar anotado con los decoradores de `@nestjs/swagger` para que aparezca correctamente en la documentación.
+
+### Decoradores requeridos
+
+| Ubicación | Decorador | Propósito |
+|---|---|---|
+| Controlador (clase) | `@ApiTags('Nombre')` | Agrupa endpoints bajo una etiqueta |
+| Controlador (clase) | `@ApiBearerAuth('bearer')` | Indica que requiere autenticación Bearer |
+| Handler (método) | `@ApiOperation({ summary: '...' })` | Describe brevemente el endpoint |
+| Handler (método) | `@ApiResponse({ status: 200, type: Dto })` | Documenta respuesta exitosa |
+| Handler (método) | `@ApiParam({ name: 'id' })` | Documenta parámetros de ruta |
+| Handler (método) | `@ApiBody({ type: RequestDto })` | Documenta el cuerpo de la petición |
+| DTO (campo) | `@ApiProperty({ example: ... })` | Documenta propiedades del esquema |
+| DTO (campo) | `@ApiPropertyOptional({ ... })` | Documenta propiedades opcionales |
+
+> **Convención:** Para respuestas paginadas, se debe crear un DTO concreto por entidad (ej. `ServicePaginatedResponseDto`) con `@ApiProperty({ type: [EntityResponseDto] })` para que Swagger infiera correctamente el esquema.
+
 ## Docker Compose (opcional)
 
 Si prefieres levantar la base de datos de desarrollo mediante contenedores, ejecuta:
