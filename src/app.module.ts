@@ -8,6 +8,7 @@ import { ProfilesModule } from '@modules/profiles/profiles.module';
 import { SupabaseModule } from '@supabase/supabase.module';
 import { ServicesModule } from '@modules/services/services.module';
 import { SeederModule } from './seeder/seeder.module';
+import { ServiceRequestsModule } from './modules/service-requests/service-requests.module';
 
 @Module({
   imports: [
@@ -24,6 +25,7 @@ import { SeederModule } from './seeder/seeder.module';
     SupabaseModule,
     ServicesModule,
     SeederModule,
+    ServiceRequestsModule,
   ],
 })
 export class AppModule {}

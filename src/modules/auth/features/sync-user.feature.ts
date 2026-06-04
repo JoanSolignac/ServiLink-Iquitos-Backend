@@ -2,7 +2,6 @@ import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '@prisma/prisma.service';
 import { User, UserRole } from '@prisma/client';
 import { FindUserByIdFeature } from '../../users/features/find-user-by-id.feature';
-import { FindUserByEmailFeature } from '../../users/features/find-user-by-email.feature';
 
 @Injectable()
 export class SyncUserFeature {

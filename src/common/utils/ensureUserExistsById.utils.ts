@@ -1,12 +1,12 @@
-import { User } from '@prisma/client';
 import { PrismaService } from '@prisma/prisma.service';
+import { User } from '@prisma/client';
 import { UserNotFoundException } from '@modules/users/exceptions/user-not-found.exception';
 
-export const ensureUserExistsByEmail = async (
+export const ensureUserExistsById = async (
   prisma: PrismaService,
-  userEmail: string,
+  userId: string,
 ): Promise<User> => {
-  const user = await prisma.user.findUnique({ where: { email: userEmail } });
+  const user = await prisma.user.findUnique({ where: { id: userId } });
   if (!user) {
     throw new UserNotFoundException();
   }
