@@ -1,7 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '@prisma/prisma.service';
 import { User, UserRole } from '@prisma/client';
-import { ensureUserExistsById } from '@modules/users/utils/user.util';
+
+import { ensureUserExistsById } from '../../../common/utils/ensureUserExistsById.utils';
 
 @Injectable()
 export class ChangeUserRoleFeature {

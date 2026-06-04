@@ -157,14 +157,15 @@ El proyecto está organizado como una aplicación NestJS estándar, agrupada por
 ```
 src/
 ├── modules/
-│   ├── auth/           # Autenticación y sincronización de usuarios
-│   ├── profiles/       # Perfiles de usuario y fotos de perfil
-│   ├── services/       # Marketplace de servicios
-│   └── users/          # Gestión de usuarios (sin endpoints HTTP)
-├── common/             # Filtros, guards, decoradores, pipes, utilidades
-├── prisma/             # Configuración y servicio de Prisma
-├── seeder/             # Inicialización de datos base
-└── supabase/           # Cliente y servicio de almacenamiento
+│   ├── auth/             # Autenticación y sincronización de usuarios
+│   ├── profiles/         # Perfiles de usuario y fotos de perfil
+│   ├── service-requests/ # Solicitudes de servicio entre clientes y proveedores
+│   ├── services/         # Marketplace de servicios
+│   └── users/            # Gestión de usuarios (sin endpoints HTTP)
+├── common/               # Filtros, guards, decoradores, pipes, utilidades
+├── prisma/               # Configuración y servicio de Prisma
+├── seeder/               # Inicialización de datos base
+└── supabase/             # Cliente y servicio de almacenamiento
 ```
 
 ### Convenciones de nomenclatura
@@ -260,6 +261,23 @@ Gestión del marketplace de servicios: publicación, aprobación, listado y bús
 > Esta separación mantiene cada feature con una única responsabilidad bien definida.
 
 > **Nota sobre la paginación:** Los tres endpoints de listado aplican paginación mediante `resolvePagination` con valores por defecto (`page: 1`, `limit: 10`) y un límite máximo de 100.
+
+### `ServiceRequestsModule`
+
+Gestión del ciclo de vida de solicitudes de servicio entre clientes y proveedores, desde la creación hasta la confirmación de finalización.
+
+| Componente | Descripción |
+|---|---|
+| **Controller** | `ServiceRequestsController` — `POST /services/:serviceId/requests`, `GET /service-requests/sent`, `GET /service-requests/received`, `PATCH /service-requests/:id/accept`, `PATCH /service-requests/:id/reject`, `PATCH /service-requests/:id/cancel`, `PATCH /service-requests/:id/finish`, `PATCH /service-requests/:id/confirm` |
+| **Features** | `CreateServiceRequestFeature`, `ListSentRequestsFeature`, `ListReceivedRequestsFeature`, `AcceptServiceRequestFeature`, `RejectServiceRequestFeature`, `CancelServiceRequestFeature`, `FinishServiceRequestFeature`, `ConfirmServiceRequestFeature` |
+| **DTOs** | `CreateServiceRequestDto`, `ListServiceRequestsQueryDto`, `ServiceRequestResponseDto` |
+| **Excepciones** | `ServiceRequestNotFoundException`, `ServiceRequestUnauthorizedException`, `ServiceRequestAlreadyExistsException`, `ServiceRequestInvalidTransitionException` |
+
+> **Nota sobre la máquina de estados:** Las transiciones entre estados siguen el flujo `PENDING → ACCEPTED → FINISHED → CONFIRMED` (o `REJECTED`/`CANCELLED` según el actor). Cada feature valida que la transición sea permitida desde el estado actual y que el actor sea el correcto; de lo contrario lanza `ServiceRequestInvalidTransitionException` o `ServiceRequestUnauthorizedException`.
+
+> **Nota sobre `reject` dual:** El endpoint `PATCH /service-requests/:id/reject` tiene semántica dual según el estado actual: el proveedor rechaza desde `PENDING` y el cliente rechaza desde `FINISHED`. Ambos casos son manejados por `RejectServiceRequestFeature`, que resuelve el actor válido en función del estado.
+
+> **Nota sobre los listados:** `GET /service-requests/sent` lista solicitudes donde el usuario autenticado es el cliente (`customerId`). `GET /service-requests/received` lista solicitudes recibidas en servicios donde el usuario es el proveedor. Ambos soportan filtrado por `status` y paginación estándar.
 
 ### Otros componentes
 

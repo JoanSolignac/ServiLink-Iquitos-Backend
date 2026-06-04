@@ -28,6 +28,11 @@ export class DomainExceptionFilter implements ExceptionFilter {
 
     [DomainErrorCode.INVALID_PROVIDER]: HttpStatus.BAD_REQUEST,
     [DomainErrorCode.SERVICE_ALREADY_APPROVED]: HttpStatus.CONFLICT,
+
+    [DomainErrorCode.SERVICE_REQUEST_NOT_FOUND]: HttpStatus.NOT_FOUND,
+    [DomainErrorCode.SERVICE_REQUEST_UNAUTHORIZED]: HttpStatus.FORBIDDEN,
+    [DomainErrorCode.SERVICE_REQUEST_INVALID_TRANSITION]: HttpStatus.CONFLICT,
+    [DomainErrorCode.SERVICE_REQUEST_ALREADY_EXISTS]: HttpStatus.CONFLICT,
   };
 
   catch(exception: DomainException, host: ArgumentsHost) {

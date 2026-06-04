@@ -21,8 +21,9 @@ model User {
   profile        Profile?
   services       Service[]
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+  serviceRequests ServiceRequests[]
 
   @@map("users")
 }
@@ -80,10 +81,11 @@ model Service {
   status      ServiceStatus
   keywords    String[]
 
-  createdAt   DateTime      @default(now())
-  updatedAt   DateTime      @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  user        User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user            User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  serviceRequests ServiceRequests[]
 
   @@map("services")
 }
@@ -92,5 +94,29 @@ enum ServiceStatus {
   PENDING
   REQUIRE_REVIEW
   APPROVED
+  REJECTED
+}
+
+model ServiceRequests {
+  id          String               @id @default(uuid())
+  serviceId   String
+  customerId  String
+  description String               @db.Text
+  status      ServiceRequestStatus
+  createdAt   DateTime             @default(now())
+  updatedAt   DateTime             @updatedAt
+
+  service Service @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
+  @@map("service_requests")
+}
+
+enum ServiceRequestStatus {
+  PENDING
+  ACCEPTED
+  CANCELLED
+  FINISHED
+  CONFIRMED
   REJECTED
 }
