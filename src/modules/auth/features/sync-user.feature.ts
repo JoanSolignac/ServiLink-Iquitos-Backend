@@ -2,6 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '@prisma/prisma.service';
 import { User, UserRole } from '@prisma/client';
 import { FindUserByIdFeature } from '../../users/features/find-user-by-id.feature';
+import { ProviderConflictException } from '../exceptions/provider-conflict.exception';
 
 @Injectable()
 export class SyncUserFeature {
@@ -47,6 +48,20 @@ export class SyncUserFeature {
 
     // Usuario existente
     if (existingUser) {
+      const existingIdentities = await this.prisma.authIdentity.findMany({
+        where: { userId: existingUser.id },
+        select: { provider: true },
+      });
+
+      const existingProviders = existingIdentities.map((i) => i.provider);
+
+      if (
+        existingProviders.includes('google-oauth2') &&
+        normalizedProvider !== 'google-oauth2'
+      ) {
+        throw new ProviderConflictException();
+      }
+
       await this.prisma.authIdentity.create({
         data: {
           userId: existingUser.id,
