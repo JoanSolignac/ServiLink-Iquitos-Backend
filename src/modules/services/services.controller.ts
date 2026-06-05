@@ -24,7 +24,6 @@ import { UpdateServiceRequestDto } from './dtos/request/update-service.request.d
 import { ListPublicServicesQueryDto } from './dtos/request/list-public-services.query.dto';
 import { ListMyServicesQueryDto } from './dtos/request/list-my-services.query.dto';
 import { ServiceResponseDto } from './dtos/response/service.response.dto';
-import { ServicePaginatedResponseDto } from './dtos/response/service-paginated.response.dto';
 import { CreateServiceFeature } from './features/create-service.feature';
 import { UpdateServiceFeature } from './features/update-service.feature';
 import { ApproveServiceFeature } from './features/approve-service.feature';
@@ -33,31 +32,38 @@ import { FindServiceByIdFeature } from './features/find-service-by-id.feature';
 import { ListPublicServicesFeature } from './features/list-public-services.feature';
 import { ListMyServicesFeature } from './features/list-my-services.feature';
 import { ListAdminServicesFeature } from './features/list-admin-services.feature';
-import { Service } from '@prisma/client';
 import { PaginateQueryDto } from '@common/dtos/request/paginate-query.request.dto';
+import { PaginatedResultResponseDto } from '@common/dtos/response/paginated-result.response.dto';
+import { ServiceWithProfileResponseDto } from './dtos/response/service-with-profile.response.dto';
+import { ServiceWithProfile } from './types/service-with-profile.type';
+import { MyService } from '@modules/services/types/my-service.type';
+import { MyServiceResponseDto } from '@modules/services/dtos/response/my-service.response.dto';
 
-function toResponseService(service: Service): ServiceResponseDto {
+function toResponseServiceWithProfile(
+  serviceUserProfile: ServiceWithProfile,
+): ServiceWithProfileResponseDto {
   return {
-    id: service.id,
-    userId: service.userId,
-    title: service.title,
-    description: service.description,
-    price: (service.price as unknown as number) ?? service.price,
-    status: service.status,
-    keywords: service.keywords,
-    createdAt:
-      service.createdAt instanceof Date
-        ? service.createdAt.toISOString()
-        : String(service.createdAt),
-    updatedAt:
-      service.updatedAt instanceof Date
-        ? service.updatedAt.toISOString()
-        : String(service.updatedAt),
+    serviceId: serviceUserProfile.id,
+    title: serviceUserProfile.title,
+    description: serviceUserProfile.description,
+    keywords: serviceUserProfile.keywords,
+    price: serviceUserProfile.price.toNumber(),
+    status: serviceUserProfile.status,
+    providerName: serviceUserProfile.user.profile!.firstName,
+    providerPictureUrl:
+      serviceUserProfile.user.profile?.profilePictureUrl ?? '',
   };
 }
 
-function toResponseServiceList(services: Service[]): ServiceResponseDto[] {
-  return services.map(toResponseService);
+function toResponseMyService(myService: MyService): MyServiceResponseDto {
+  return {
+    serviceId: myService.id,
+    title: myService.title,
+    description: myService.description,
+    keywords: myService.keywords,
+    price: myService.price.toNumber(),
+    status: myService.status,
+  };
 }
 
 @ApiTags('Services')
@@ -89,16 +95,14 @@ export class ServicesController {
   async create(
     @CurrentUser() authCurrentUser: AuthCurrentUser,
     @Body() dto: CreateServiceRequestDto,
-  ): Promise<ServiceResponseDto> {
-    const service = await this.createServiceFeature.execute(
+  ): Promise<void> {
+    await this.createServiceFeature.execute(
       authCurrentUser.id,
       dto.title,
       dto.description,
       dto.price,
       dto.keywords ?? [],
     );
-
-    return toResponseService(service);
   }
 
   @Patch(':id')
@@ -123,8 +127,8 @@ export class ServicesController {
     @CurrentUser() authCurrentUser: AuthCurrentUser,
     @Param('id') id: string,
     @Body() dto: UpdateServiceRequestDto,
-  ): Promise<ServiceResponseDto> {
-    const service = await this.updateServiceFeature.execute({
+  ): Promise<void> {
+    await this.updateServiceFeature.execute({
       serviceId: id,
       requestingUserId: authCurrentUser.id,
       title: dto.title,
@@ -132,8 +136,6 @@ export class ServicesController {
       price: dto.price,
       keywords: dto.keywords,
     });
-
-    return toResponseService(service);
   }
 
   @Get()
@@ -142,12 +144,12 @@ export class ServicesController {
   @ApiResponse({
     status: 200,
     description: 'Paginated list of approved services',
-    type: ServicePaginatedResponseDto,
+    type: PaginatedResultResponseDto<ServiceWithProfileResponseDto>,
   })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   async listPublic(
     @Query() query: ListPublicServicesQueryDto,
-  ): Promise<ServicePaginatedResponseDto> {
+  ): Promise<PaginatedResultResponseDto<ServiceWithProfileResponseDto>> {
     const result = await this.listPublicServicesFeature.execute({
       search: query.search,
       page: query.page ?? 1,
@@ -155,7 +157,7 @@ export class ServicesController {
     });
 
     return {
-      data: toResponseServiceList(result.services),
+      data: result.servicesUserProfile.map(toResponseServiceWithProfile),
       meta: {
         page: query.page ?? 1,
         limit: query.limit ?? 10,
@@ -170,13 +172,13 @@ export class ServicesController {
   @ApiResponse({
     status: 200,
     description: 'Paginated list of services owned by the current user',
-    type: ServicePaginatedResponseDto,
+    type: PaginatedResultResponseDto<MyServiceResponseDto>,
   })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   async listMy(
     @CurrentUser() authCurrentUser: AuthCurrentUser,
     @Query() query: ListMyServicesQueryDto,
-  ): Promise<ServicePaginatedResponseDto> {
+  ): Promise<PaginatedResultResponseDto<MyServiceResponseDto>> {
     const result = await this.listMyServicesFeature.execute({
       userId: authCurrentUser.id,
       search: query.search,
@@ -186,7 +188,7 @@ export class ServicesController {
     });
 
     return {
-      data: toResponseServiceList(result.services),
+      data: result.myServices.map(toResponseMyService),
       meta: {
         page: query.page ?? 1,
         limit: query.limit ?? 10,
@@ -203,7 +205,7 @@ export class ServicesController {
   @ApiResponse({
     status: 200,
     description: 'Paginated list of services with status REQUIRE_REVIEW',
-    type: ServicePaginatedResponseDto,
+    type: PaginatedResultResponseDto<ServiceWithProfileResponseDto>,
   })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @ApiResponse({
@@ -212,14 +214,14 @@ export class ServicesController {
   })
   async listAdmin(
     @Query() query: PaginateQueryDto,
-  ): Promise<ServicePaginatedResponseDto> {
+  ): Promise<PaginatedResultResponseDto<ServiceWithProfileResponseDto>> {
     const result = await this.listAdminServicesFeature.execute({
       page: query.page ?? 1,
       limit: query.limit ?? 10,
     });
 
     return {
-      data: toResponseServiceList(result.services),
+      data: result.servicesUserProfile.map(toResponseServiceWithProfile),
       meta: {
         page: query.page ?? 1,
         limit: query.limit ?? 10,
@@ -246,14 +248,14 @@ export class ServicesController {
   async findById(
     @CurrentUser() authCurrentUser: AuthCurrentUser,
     @Param('id') id: string,
-  ): Promise<ServiceResponseDto> {
+  ): Promise<ServiceWithProfileResponseDto> {
     const service = await this.findServiceByIdFeature.execute({
       serviceId: id,
       requestingUserId: authCurrentUser.id,
       requestingUserRole: authCurrentUser.role,
     });
 
-    return toResponseService(service);
+    return toResponseServiceWithProfile(service);
   }
 
   @Patch(':id/approve')
@@ -276,9 +278,8 @@ export class ServicesController {
   })
   @ApiResponse({ status: 404, description: 'Service not found' })
   @ApiResponse({ status: 409, description: 'Service already approved' })
-  async approve(@Param('id') id: string): Promise<ServiceResponseDto> {
-    const service = await this.approveServiceFeature.execute(id);
-    return toResponseService(service);
+  async approve(@Param('id') id: string): Promise<void> {
+    await this.approveServiceFeature.execute(id);
   }
 
   @Patch(':id/reject')
@@ -300,8 +301,7 @@ export class ServicesController {
     description: 'Forbidden - requires MODERATOR or ADMINISTRATOR',
   })
   @ApiResponse({ status: 404, description: 'Service not found' })
-  async reject(@Param('id') id: string): Promise<ServiceResponseDto> {
-    const service = await this.rejectServiceFeature.execute(id);
-    return toResponseService(service);
+  async reject(@Param('id') id: string): Promise<void> {
+    await this.rejectServiceFeature.execute(id);
   }
 }

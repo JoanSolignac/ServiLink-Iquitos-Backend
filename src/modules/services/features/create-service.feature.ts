@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '@prisma/prisma.service';
-import { Service, ServiceStatus } from '@prisma/client';
+import { ServiceStatus } from '@prisma/client';
 
 @Injectable()
 export class CreateServiceFeature {
@@ -12,8 +12,8 @@ export class CreateServiceFeature {
     description: string,
     price: number,
     keywords: string[],
-  ): Promise<Service> {
-    return this.prisma.service.create({
+  ): Promise<void> {
+    await this.prisma.service.create({
       data: {
         userId,
         title,
