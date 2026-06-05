@@ -19,9 +19,11 @@ import { CurrentUser } from '@common/decorators/current-user.decorator';
 import type { AuthCurrentUser } from '@common/interfaces/auth-current-user.interface';
 import { UseAuth } from '@common/decorators/use-auth.decorator';
 import { ListServiceRequestsQueryDto } from './dtos/request/list-service-requests.query.dto';
-import { CreateServiceRequestDto } from './dtos/request/create-service-request.request.dto';
+import { CreateServiceRequestBodyDto } from './dtos/request/create-service-request.request.dto';
 import { ReceivedServiceRequestResponseDto } from './dtos/response/received-service-request.response.dto';
 import { SentServiceRequestResponseDto } from './dtos/response/sent-service-request.response.dto';
+import { SentServiceRequestPaginatedResponseDto } from './dtos/response/sent-service-request-paginated.response.dto';
+import { ReceivedServiceRequestPaginatedResponseDto } from './dtos/response/received-service-request-paginated.response.dto';
 import { ListSentRequestsFeature } from './features/list-sent-requests.feature';
 import { ListReceivedRequestsFeature } from './features/list-received-requests.feature';
 import { CreateServiceRequestFeature } from './features/create-service-request.feature';
@@ -54,7 +56,7 @@ export class ServiceRequestsController {
   @Post('services/:serviceId/requests')
   @ApiOperation({ summary: 'Create a service request' })
   @ApiParam({ name: 'serviceId', description: 'Service ID' })
-  @ApiBody({ type: CreateServiceRequestDto })
+  @ApiBody({ type: CreateServiceRequestBodyDto })
   @ApiResponse({
     status: 201,
     description: 'Service request created',
@@ -72,7 +74,7 @@ export class ServiceRequestsController {
   async create(
     @CurrentUser() user: AuthCurrentUser,
     @Param('serviceId') serviceId: string,
-    @Body() dto: CreateServiceRequestDto,
+    @Body() dto: CreateServiceRequestBodyDto,
   ): Promise<SentServiceRequestResponseDto> {
     const sr = await this.createServiceRequestFeature.execute({
       customerId: user.id,
@@ -89,13 +91,13 @@ export class ServiceRequestsController {
   @ApiResponse({
     status: 200,
     description: 'Paginated list of sent requests',
-    type: SentServiceRequestResponseDto,
+    type: SentServiceRequestPaginatedResponseDto,
   })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   async listSent(
     @CurrentUser() user: AuthCurrentUser,
     @Query() query: ListServiceRequestsQueryDto,
-  ) {
+  ): Promise<SentServiceRequestPaginatedResponseDto> {
     const { data, total } = await this.listSentRequestsFeature.execute({
       customerId: user.id,
       status: query.status,
@@ -116,13 +118,13 @@ export class ServiceRequestsController {
   @ApiResponse({
     status: 200,
     description: 'Paginated list of received requests',
-    type: ReceivedServiceRequestResponseDto,
+    type: ReceivedServiceRequestPaginatedResponseDto,
   })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   async listReceived(
     @CurrentUser() user: AuthCurrentUser,
     @Query() query: ListServiceRequestsQueryDto,
-  ) {
+  ): Promise<ReceivedServiceRequestPaginatedResponseDto> {
     const { data, total } = await this.listReceivedRequestsFeature.execute({
       actorId: user.id,
       status: query.status,

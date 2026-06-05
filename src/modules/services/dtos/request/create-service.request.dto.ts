@@ -8,7 +8,7 @@ import {
 } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
-export class CreateServiceRequestDto {
+export class CreateServiceBodyDto {
   @ApiProperty({
     description: 'Title of the service',
     example: 'House Cleaning',
