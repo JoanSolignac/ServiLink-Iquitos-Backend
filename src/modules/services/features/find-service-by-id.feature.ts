@@ -2,11 +2,11 @@ import { Injectable } from '@nestjs/common';
 import { PrismaService } from '@prisma/prisma.service';
 import { ServiceStatus, UserRole } from '@prisma/client';
 import { ServiceNotFoundException } from '../exceptions/service-not-found.exception';
-import {
-  SERVICE_WITH_PROFILE_SELECT,
-  ServiceWithProfile,
-} from '@modules/services/types/service-with-profile.type';
 import { FindServiceByIdInput } from '@modules/services/types/find-service-by-id-input.type';
+import {
+  ServiceWithProfile,
+  SERVICE_WITH_PROFILE_SELECT,
+} from '@modules/services/types/service-with-profile.type';
 
 @Injectable()
 export class FindServiceByIdFeature {

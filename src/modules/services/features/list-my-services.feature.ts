@@ -2,9 +2,9 @@ import { Injectable } from '@nestjs/common';
 import { PrismaService } from '@prisma/prisma.service';
 import { Prisma } from '@prisma/client';
 import { resolvePagination } from '@common/utils/pagination.util';
-import { MY_SERVICE_SELECT } from '../types/my-service.type';
-import { ListMyServicesInput } from '../types/list-my-services-input.type';
-import { PaginatedMyServices } from '../types/paginated-my-services.type';
+import { ListMyServicesInput } from '@modules/services/types/list-my-services-input.type';
+import { PaginatedMyServices } from '@modules/services/types/paginated-my-services.type';
+import { MY_SERVICE_SELECT } from '@modules/services/types/my-service.type';
 
 @Injectable()
 export class ListMyServicesFeature {

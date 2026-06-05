@@ -20,7 +20,8 @@ import type { AuthCurrentUser } from '@common/interfaces/auth-current-user.inter
 import { UseAuth } from '@common/decorators/use-auth.decorator';
 import { ListServiceRequestsQueryDto } from './dtos/request/list-service-requests.query.dto';
 import { CreateServiceRequestDto } from './dtos/request/create-service-request.request.dto';
-import { ServiceRequestResponseDto } from './dtos/response/service-request.response.dto';
+import { ReceivedServiceRequestResponseDto } from './dtos/response/received-service-request.response.dto';
+import { SentServiceRequestResponseDto } from './dtos/response/sent-service-request.response.dto';
 import { ListSentRequestsFeature } from './features/list-sent-requests.feature';
 import { ListReceivedRequestsFeature } from './features/list-received-requests.feature';
 import { CreateServiceRequestFeature } from './features/create-service-request.feature';
@@ -29,7 +30,10 @@ import { RejectServiceRequestFeature } from './features/reject-service-request.f
 import { CancelServiceRequestFeature } from './features/cancel-service-request.feature';
 import { FinishServiceRequestFeature } from './features/finish-service-request.feature';
 import { ConfirmServiceRequestFeature } from './features/confirm-service-request.feature';
-import { toResponse } from '@modules/service-requests/utils/service-request-to-response.util';
+import {
+  toReceivedResponse,
+  toSentResponse,
+} from '@modules/service-requests/utils/service-request-to-response.util';
 
 @ApiTags('Service Requests')
 @ApiBearerAuth('bearer')
@@ -54,7 +58,7 @@ export class ServiceRequestsController {
   @ApiResponse({
     status: 201,
     description: 'Service request created',
-    type: ServiceRequestResponseDto,
+    type: SentServiceRequestResponseDto,
   })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @ApiResponse({
@@ -69,23 +73,25 @@ export class ServiceRequestsController {
     @CurrentUser() user: AuthCurrentUser,
     @Param('serviceId') serviceId: string,
     @Body() dto: CreateServiceRequestDto,
-  ): Promise<ServiceRequestResponseDto> {
+  ): Promise<SentServiceRequestResponseDto> {
     const sr = await this.createServiceRequestFeature.execute({
       customerId: user.id,
       serviceId,
       description: dto.description,
     });
-    return toResponse(sr);
+    return toSentResponse(sr);
   }
 
   @Get('/service-requests/sent')
   @ApiOperation({
-    summary: 'List my sent service requests for a service (as customer)',
+    summary: 'List my sent service requests (as customer)',
   })
-  @ApiParam({ name: 'serviceId', description: 'Service ID' })
-  @ApiResponse({ status: 200, description: 'Paginated list of sent requests' })
+  @ApiResponse({
+    status: 200,
+    description: 'Paginated list of sent requests',
+    type: SentServiceRequestResponseDto,
+  })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
-  @ApiResponse({ status: 404, description: 'Service not found' })
   async listSent(
     @CurrentUser() user: AuthCurrentUser,
     @Query() query: ListServiceRequestsQueryDto,
@@ -98,23 +104,21 @@ export class ServiceRequestsController {
     });
 
     return {
-      data: data.map(toResponse),
+      data: data.map(toSentResponse),
       meta: { page: query.page ?? 1, limit: query.limit ?? 10, total },
     };
   }
 
   @Get('/service-requests/received')
   @ApiOperation({
-    summary: 'List requests received on a service (as provider)',
+    summary: 'List requests received on my services (as provider)',
   })
-  @ApiParam({ name: 'serviceId', description: 'Service ID' })
   @ApiResponse({
     status: 200,
     description: 'Paginated list of received requests',
+    type: ReceivedServiceRequestResponseDto,
   })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
-  @ApiResponse({ status: 403, description: 'Unauthorized — not the provider' })
-  @ApiResponse({ status: 404, description: 'Service not found' })
   async listReceived(
     @CurrentUser() user: AuthCurrentUser,
     @Query() query: ListServiceRequestsQueryDto,
@@ -127,7 +131,7 @@ export class ServiceRequestsController {
     });
 
     return {
-      data: data.map(toResponse),
+      data: data.map(toReceivedResponse),
       meta: { page: query.page ?? 1, limit: query.limit ?? 10, total },
     };
   }
@@ -140,7 +144,7 @@ export class ServiceRequestsController {
   @ApiResponse({
     status: 200,
     description: 'Request accepted',
-    type: ServiceRequestResponseDto,
+    type: ReceivedServiceRequestResponseDto,
   })
   @ApiResponse({ status: 403, description: 'Unauthorized — not the provider' })
   @ApiResponse({ status: 404, description: 'Service request not found' })
@@ -148,9 +152,9 @@ export class ServiceRequestsController {
   async accept(
     @CurrentUser() user: AuthCurrentUser,
     @Param('id') id: string,
-  ): Promise<ServiceRequestResponseDto> {
+  ): Promise<ReceivedServiceRequestResponseDto> {
     const sr = await this.acceptServiceRequestFeature.execute(id, user.id);
-    return toResponse(sr);
+    return toReceivedResponse(sr);
   }
 
   @Patch('service-requests/:id/reject')
@@ -162,7 +166,7 @@ export class ServiceRequestsController {
   @ApiResponse({
     status: 200,
     description: 'Request rejected',
-    type: ServiceRequestResponseDto,
+    type: ReceivedServiceRequestResponseDto,
   })
   @ApiResponse({
     status: 403,
@@ -173,9 +177,9 @@ export class ServiceRequestsController {
   async reject(
     @CurrentUser() user: AuthCurrentUser,
     @Param('id') id: string,
-  ): Promise<ServiceRequestResponseDto> {
+  ): Promise<ReceivedServiceRequestResponseDto> {
     const sr = await this.rejectServiceRequestFeature.execute(id, user.id);
-    return toResponse(sr);
+    return toReceivedResponse(sr);
   }
 
   @Patch('service-requests/:id/cancel')
@@ -186,7 +190,7 @@ export class ServiceRequestsController {
   @ApiResponse({
     status: 200,
     description: 'Request cancelled',
-    type: ServiceRequestResponseDto,
+    type: SentServiceRequestResponseDto,
   })
   @ApiResponse({
     status: 403,
@@ -197,9 +201,9 @@ export class ServiceRequestsController {
   async cancel(
     @CurrentUser() user: AuthCurrentUser,
     @Param('id') id: string,
-  ): Promise<ServiceRequestResponseDto> {
+  ): Promise<SentServiceRequestResponseDto> {
     const sr = await this.cancelServiceRequestFeature.execute(id, user.id);
-    return toResponse(sr);
+    return toSentResponse(sr);
   }
 
   @Patch('service-requests/:id/finish')
@@ -211,7 +215,7 @@ export class ServiceRequestsController {
   @ApiResponse({
     status: 200,
     description: 'Request marked as finished',
-    type: ServiceRequestResponseDto,
+    type: ReceivedServiceRequestResponseDto,
   })
   @ApiResponse({ status: 403, description: 'Unauthorized — not the provider' })
   @ApiResponse({ status: 404, description: 'Service request not found' })
@@ -219,9 +223,9 @@ export class ServiceRequestsController {
   async finish(
     @CurrentUser() user: AuthCurrentUser,
     @Param('id') id: string,
-  ): Promise<ServiceRequestResponseDto> {
+  ): Promise<ReceivedServiceRequestResponseDto> {
     const sr = await this.finishServiceRequestFeature.execute(id, user.id);
-    return toResponse(sr);
+    return toReceivedResponse(sr);
   }
 
   @Patch('service-requests/:id/confirm')
@@ -232,7 +236,7 @@ export class ServiceRequestsController {
   @ApiResponse({
     status: 200,
     description: 'Request confirmed',
-    type: ServiceRequestResponseDto,
+    type: SentServiceRequestResponseDto,
   })
   @ApiResponse({ status: 403, description: 'Unauthorized — not the customer' })
   @ApiResponse({ status: 404, description: 'Service request not found' })
@@ -240,8 +244,8 @@ export class ServiceRequestsController {
   async confirm(
     @CurrentUser() user: AuthCurrentUser,
     @Param('id') id: string,
-  ): Promise<ServiceRequestResponseDto> {
+  ): Promise<SentServiceRequestResponseDto> {
     const sr = await this.confirmServiceRequestFeature.execute(id, user.id);
-    return toResponse(sr);
+    return toSentResponse(sr);
   }
 }

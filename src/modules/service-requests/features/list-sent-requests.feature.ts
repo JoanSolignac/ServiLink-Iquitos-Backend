@@ -1,8 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '@prisma/prisma.service';
 import { ServiceRequestStatus } from '@prisma/client';
-import { ServiceRequestWithService } from '@modules/service-requests/utils/service-requests.util';
 import { resolvePagination } from '@common/utils/pagination.util';
+import {
+  SERVICE_REQUEST_WITH_PROVIDER_SELECT,
+  ServiceRequestWithProvider,
+} from '@modules/service-requests/types/service-request-with-provider.type';
 
 type ListSentRequestsInput = {
   customerId: string;
@@ -17,7 +20,7 @@ export class ListSentRequestsFeature {
 
   async execute(
     input: ListSentRequestsInput,
-  ): Promise<{ data: ServiceRequestWithService[]; total: number }> {
+  ): Promise<{ data: ServiceRequestWithProvider[]; total: number }> {
     const { skip, take } = resolvePagination(input.page, input.limit);
 
     const where = {
@@ -28,7 +31,7 @@ export class ListSentRequestsFeature {
     const [data, total] = await this.prisma.$transaction([
       this.prisma.serviceRequests.findMany({
         where,
-        include: { service: true },
+        select: SERVICE_REQUEST_WITH_PROVIDER_SELECT,
         orderBy: { createdAt: 'desc' },
         skip,
         take,
