@@ -1,7 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '@prisma/prisma.service';
 import { ServiceRequestStatus, ServiceStatus } from '@prisma/client';
-import { ServiceRequestWithService } from '@modules/service-requests/utils/service-requests.util';
+import {
+  SERVICE_REQUEST_WITH_PROVIDER_SELECT,
+  ServiceRequestWithProvider,
+} from '@modules/service-requests/types/service-request-with-provider.type';
 import { ServiceNotFoundException } from '@modules/services/exceptions/service-not-found.exception';
 import { ServiceRequestUnauthorizedException } from '@modules/service-requests/exceptions/service-request-unauthorized.exception';
 import { ServiceRequestAlreadyExistsException } from '@modules/service-requests/exceptions/service-request-already-exists.exception';
@@ -18,7 +21,7 @@ export class CreateServiceRequestFeature {
 
   async execute(
     input: CreateServiceRequestInput,
-  ): Promise<ServiceRequestWithService> {
+  ): Promise<ServiceRequestWithProvider> {
     const service = await this.prisma.service.findUnique({
       where: { id: input.serviceId },
     });
@@ -39,7 +42,9 @@ export class CreateServiceRequestFeature {
       where: {
         customerId: input.customerId,
         serviceId: input.serviceId,
-        status: ServiceStatus.PENDING || ServiceStatus.APPROVED,
+        status: {
+          in: [ServiceRequestStatus.PENDING, ServiceRequestStatus.ACCEPTED],
+        },
       },
     });
 
@@ -54,7 +59,7 @@ export class CreateServiceRequestFeature {
         description: input.description,
         status: ServiceRequestStatus.PENDING,
       },
-      include: { service: true },
+      select: SERVICE_REQUEST_WITH_PROVIDER_SELECT,
     });
   }
 }

@@ -1,10 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '@prisma/prisma.service';
 import { ServiceRequestStatus } from '@prisma/client';
+import { ensureServiceRequestWithCustomer } from '@modules/service-requests/utils/service-requests.util';
 import {
-  ensureServiceRequestExistsById,
-  ServiceRequestWithService,
-} from '@modules/service-requests/utils/service-requests.util';
+  SERVICE_REQUEST_WITH_CUSTOMER_SELECT,
+  ServiceRequestWithCustomer,
+} from '@modules/service-requests/types/service-request-with-customer.type';
 import { ServiceRequestUnauthorizedException } from '@modules/service-requests/exceptions/service-request-unauthorized.exception';
 import { ServiceRequestInvalidTransitionException } from '@modules/service-requests/exceptions/service-request-invalid-transition.exception';
 
@@ -15,8 +16,8 @@ export class RejectServiceRequestFeature {
   async execute(
     id: string,
     actorId: string,
-  ): Promise<ServiceRequestWithService> {
-    const serviceRequest = await ensureServiceRequestExistsById(
+  ): Promise<ServiceRequestWithCustomer> {
+    const serviceRequest = await ensureServiceRequestWithCustomer(
       this.prisma,
       id,
     );
@@ -36,7 +37,7 @@ export class RejectServiceRequestFeature {
     return this.prisma.serviceRequests.update({
       where: { id },
       data: { status: ServiceRequestStatus.REJECTED },
-      include: { service: true },
+      select: SERVICE_REQUEST_WITH_CUSTOMER_SELECT,
     });
   }
 }

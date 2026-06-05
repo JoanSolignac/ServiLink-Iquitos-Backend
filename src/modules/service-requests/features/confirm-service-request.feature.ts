@@ -1,10 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '@prisma/prisma.service';
 import { ServiceRequestStatus } from '@prisma/client';
+import { ensureServiceRequestWithProvider } from '@modules/service-requests/utils/service-requests.util';
 import {
-  ensureServiceRequestExistsById,
-  ServiceRequestWithService,
-} from '@modules/service-requests/utils/service-requests.util';
+  SERVICE_REQUEST_WITH_PROVIDER_SELECT,
+  ServiceRequestWithProvider,
+} from '@modules/service-requests/types/service-request-with-provider.type';
 import { ServiceRequestUnauthorizedException } from '@modules/service-requests/exceptions/service-request-unauthorized.exception';
 import { ServiceRequestInvalidTransitionException } from '@modules/service-requests/exceptions/service-request-invalid-transition.exception';
 
@@ -15,8 +16,8 @@ export class ConfirmServiceRequestFeature {
   async execute(
     id: string,
     customerId: string,
-  ): Promise<ServiceRequestWithService> {
-    const serviceRequest = await ensureServiceRequestExistsById(
+  ): Promise<ServiceRequestWithProvider> {
+    const serviceRequest = await ensureServiceRequestWithProvider(
       this.prisma,
       id,
     );
@@ -32,7 +33,7 @@ export class ConfirmServiceRequestFeature {
     return this.prisma.serviceRequests.update({
       where: { id },
       data: { status: ServiceRequestStatus.CONFIRMED },
-      include: { service: true },
+      select: SERVICE_REQUEST_WITH_PROVIDER_SELECT,
     });
   }
 }

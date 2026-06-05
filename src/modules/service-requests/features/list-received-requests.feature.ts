@@ -1,10 +1,12 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '@prisma/prisma.service';
 import { Prisma, ServiceRequestStatus } from '@prisma/client';
-import { ServiceRequestWithService } from '@modules/service-requests/utils/service-requests.util';
 import { resolvePagination } from '@common/utils/pagination.util';
-
 import { ensureUserExistsById } from '@common/utils/ensureUserExistsById.utils';
+import {
+  SERVICE_REQUEST_WITH_CUSTOMER_SELECT,
+  ServiceRequestWithCustomer,
+} from '@modules/service-requests/types/service-request-with-customer.type';
 
 type ListReceivedRequestsInput = {
   actorId: string;
@@ -19,7 +21,7 @@ export class ListReceivedRequestsFeature {
 
   async execute(
     input: ListReceivedRequestsInput,
-  ): Promise<{ data: ServiceRequestWithService[]; total: number }> {
+  ): Promise<{ data: ServiceRequestWithCustomer[]; total: number }> {
     const { skip, take } = resolvePagination(input.page, input.limit);
 
     const user = await ensureUserExistsById(this.prisma, input.actorId);
@@ -35,7 +37,7 @@ export class ListReceivedRequestsFeature {
     const [data, total] = await this.prisma.$transaction([
       this.prisma.serviceRequests.findMany({
         where,
-        include: { service: true },
+        select: SERVICE_REQUEST_WITH_CUSTOMER_SELECT,
         orderBy: { createdAt: 'desc' },
         skip,
         take,
