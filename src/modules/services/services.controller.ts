@@ -1,6 +1,8 @@
 import {
   Controller,
   Get,
+  HttpCode,
+  HttpStatus,
   Post,
   Patch,
   Param,
@@ -19,11 +21,10 @@ import { CurrentUser } from '@common/decorators/current-user.decorator';
 import type { AuthCurrentUser } from '@common/interfaces/auth-current-user.interface';
 import { UseAuth } from '@common/decorators/use-auth.decorator';
 import { UserRole } from '@prisma/client';
-import { CreateServiceRequestDto } from './dtos/request/create-service.request.dto';
+import { CreateServiceBodyDto } from './dtos/request/create-service.request.dto';
 import { UpdateServiceRequestDto } from './dtos/request/update-service.request.dto';
 import { ListPublicServicesQueryDto } from './dtos/request/list-public-services.query.dto';
 import { ListMyServicesQueryDto } from './dtos/request/list-my-services.query.dto';
-import { ServiceResponseDto } from './dtos/response/service.response.dto';
 import { CreateServiceFeature } from './features/create-service.feature';
 import { UpdateServiceFeature } from './features/update-service.feature';
 import { ApproveServiceFeature } from './features/approve-service.feature';
@@ -33,11 +34,12 @@ import { ListPublicServicesFeature } from './features/list-public-services.featu
 import { ListMyServicesFeature } from './features/list-my-services.feature';
 import { ListAdminServicesFeature } from './features/list-admin-services.feature';
 import { PaginateQueryDto } from '@common/dtos/request/paginate-query.request.dto';
-import { PaginatedResultResponseDto } from '@common/dtos/response/paginated-result.response.dto';
 import { ServiceWithProfileResponseDto } from './dtos/response/service-with-profile.response.dto';
+import { ServiceWithProfilePaginatedResponseDto } from './dtos/response/service-with-profile-paginated.response.dto';
 import { ServiceWithProfile } from './types/service-with-profile.type';
 import { MyService } from '@modules/services/types/my-service.type';
 import { MyServiceResponseDto } from '@modules/services/dtos/response/my-service.response.dto';
+import { MyServicePaginatedResponseDto } from '@modules/services/dtos/response/my-service-paginated.response.dto';
 
 function toResponseServiceWithProfile(
   serviceUserProfile: ServiceWithProfile,
@@ -84,17 +86,16 @@ export class ServicesController {
   @Post()
   @UseAuth()
   @ApiOperation({ summary: 'Create a new service' })
-  @ApiBody({ type: CreateServiceRequestDto })
+  @ApiBody({ type: CreateServiceBodyDto })
   @ApiResponse({
     status: 201,
     description:
       'Service created successfully. Status defaults to REQUIRE_REVIEW.',
-    type: ServiceResponseDto,
   })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   async create(
     @CurrentUser() authCurrentUser: AuthCurrentUser,
-    @Body() dto: CreateServiceRequestDto,
+    @Body() dto: CreateServiceBodyDto,
   ): Promise<void> {
     await this.createServiceFeature.execute(
       authCurrentUser.id,
@@ -107,6 +108,7 @@ export class ServicesController {
 
   @Patch(':id')
   @UseAuth()
+  @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ summary: 'Update an existing service' })
   @ApiParam({
     name: 'id',
@@ -115,10 +117,9 @@ export class ServicesController {
   })
   @ApiBody({ type: UpdateServiceRequestDto })
   @ApiResponse({
-    status: 200,
+    status: 204,
     description:
       'Service updated successfully. Status resets to REQUIRE_REVIEW.',
-    type: ServiceResponseDto,
   })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @ApiResponse({ status: 403, description: 'Forbidden - not the owner' })
@@ -144,12 +145,12 @@ export class ServicesController {
   @ApiResponse({
     status: 200,
     description: 'Paginated list of approved services',
-    type: PaginatedResultResponseDto<ServiceWithProfileResponseDto>,
+    type: ServiceWithProfilePaginatedResponseDto,
   })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   async listPublic(
     @Query() query: ListPublicServicesQueryDto,
-  ): Promise<PaginatedResultResponseDto<ServiceWithProfileResponseDto>> {
+  ): Promise<ServiceWithProfilePaginatedResponseDto> {
     const result = await this.listPublicServicesFeature.execute({
       search: query.search,
       page: query.page ?? 1,
@@ -172,13 +173,13 @@ export class ServicesController {
   @ApiResponse({
     status: 200,
     description: 'Paginated list of services owned by the current user',
-    type: PaginatedResultResponseDto<MyServiceResponseDto>,
+    type: MyServicePaginatedResponseDto,
   })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   async listMy(
     @CurrentUser() authCurrentUser: AuthCurrentUser,
     @Query() query: ListMyServicesQueryDto,
-  ): Promise<PaginatedResultResponseDto<MyServiceResponseDto>> {
+  ): Promise<MyServicePaginatedResponseDto> {
     const result = await this.listMyServicesFeature.execute({
       userId: authCurrentUser.id,
       search: query.search,
@@ -205,7 +206,7 @@ export class ServicesController {
   @ApiResponse({
     status: 200,
     description: 'Paginated list of services with status REQUIRE_REVIEW',
-    type: PaginatedResultResponseDto<ServiceWithProfileResponseDto>,
+    type: ServiceWithProfilePaginatedResponseDto,
   })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @ApiResponse({
@@ -214,7 +215,7 @@ export class ServicesController {
   })
   async listAdmin(
     @Query() query: PaginateQueryDto,
-  ): Promise<PaginatedResultResponseDto<ServiceWithProfileResponseDto>> {
+  ): Promise<ServiceWithProfilePaginatedResponseDto> {
     const result = await this.listAdminServicesFeature.execute({
       page: query.page ?? 1,
       limit: query.limit ?? 10,
@@ -241,7 +242,7 @@ export class ServicesController {
   @ApiResponse({
     status: 200,
     description: 'Service found',
-    type: ServiceResponseDto,
+    type: ServiceWithProfileResponseDto,
   })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @ApiResponse({ status: 404, description: 'Service not found or not visible' })
@@ -260,6 +261,7 @@ export class ServicesController {
 
   @Patch(':id/approve')
   @UseAuth(UserRole.MODERATOR, UserRole.ADMINISTRATOR)
+  @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ summary: 'Approve a service (moderator/admin only)' })
   @ApiParam({
     name: 'id',
@@ -267,9 +269,8 @@ export class ServicesController {
     example: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890',
   })
   @ApiResponse({
-    status: 200,
+    status: 204,
     description: 'Service approved successfully',
-    type: ServiceResponseDto,
   })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @ApiResponse({
@@ -284,6 +285,7 @@ export class ServicesController {
 
   @Patch(':id/reject')
   @UseAuth(UserRole.MODERATOR, UserRole.ADMINISTRATOR)
+  @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ summary: 'Reject a service (moderator/admin only)' })
   @ApiParam({
     name: 'id',
@@ -291,9 +293,8 @@ export class ServicesController {
     example: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890',
   })
   @ApiResponse({
-    status: 200,
+    status: 204,
     description: 'Service rejected successfully',
-    type: ServiceResponseDto,
   })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @ApiResponse({
