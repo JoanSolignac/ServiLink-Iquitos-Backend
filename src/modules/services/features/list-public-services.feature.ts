@@ -1,13 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '@prisma/prisma.service';
-import { Service, Prisma, ServiceStatus } from '@prisma/client';
+import { Prisma, ServiceStatus } from '@prisma/client';
 import { resolvePagination } from '@common/utils/pagination.util';
-
-type ListPublicServicesInput = {
-  search?: string;
-  page?: number;
-  limit?: number;
-};
+import { ListPublicServicesInput } from '../types/list-public-services-input.type';
+import { SERVICE_WITH_PROFILE_SELECT } from '../types/service-with-profile.type';
+import { PaginatedServicesWithProfile } from '../types/paginated-services-with-profile.type';
 
 @Injectable()
 export class ListPublicServicesFeature {
@@ -15,7 +12,7 @@ export class ListPublicServicesFeature {
 
   async execute(
     input: ListPublicServicesInput,
-  ): Promise<{ services: Service[]; total: number }> {
+  ): Promise<PaginatedServicesWithProfile> {
     const { skip, take } = resolvePagination(input.page, input.limit);
 
     const where: Prisma.ServiceWhereInput = {
@@ -44,16 +41,17 @@ export class ListPublicServicesFeature {
       ];
     }
 
-    const [services, total] = await Promise.all([
+    const [servicesUserProfile, total] = await this.prisma.$transaction([
       this.prisma.service.findMany({
         where,
         orderBy: { createdAt: 'desc' },
         skip,
         take,
+        select: SERVICE_WITH_PROFILE_SELECT,
       }),
       this.prisma.service.count({ where }),
     ]);
 
-    return { services, total };
+    return { servicesUserProfile, total };
   }
 }

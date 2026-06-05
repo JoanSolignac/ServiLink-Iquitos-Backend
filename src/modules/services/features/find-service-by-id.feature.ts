@@ -1,21 +1,21 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '@prisma/prisma.service';
-import { Service, ServiceStatus, UserRole } from '@prisma/client';
+import { ServiceStatus, UserRole } from '@prisma/client';
 import { ServiceNotFoundException } from '../exceptions/service-not-found.exception';
-
-type FindServiceByIdInput = {
-  serviceId: string;
-  requestingUserId?: string;
-  requestingUserRole?: UserRole;
-};
+import {
+  SERVICE_WITH_PROFILE_SELECT,
+  ServiceWithProfile,
+} from '@modules/services/types/service-with-profile.type';
+import { FindServiceByIdInput } from '@modules/services/types/find-service-by-id-input.type';
 
 @Injectable()
 export class FindServiceByIdFeature {
   constructor(private readonly prisma: PrismaService) {}
 
-  async execute(input: FindServiceByIdInput): Promise<Service> {
+  async execute(input: FindServiceByIdInput): Promise<ServiceWithProfile> {
     const service = await this.prisma.service.findUnique({
       where: { id: input.serviceId },
+      select: SERVICE_WITH_PROFILE_SELECT,
     });
 
     if (!service) {
@@ -25,7 +25,7 @@ export class FindServiceByIdFeature {
     const isApproved = service.status === ServiceStatus.APPROVED;
 
     const isOwner =
-      input.requestingUserId && service.userId === input.requestingUserId;
+      input.requestingUserId && service.user.id === input.requestingUserId;
 
     const isModeratorOrAdmin =
       input.requestingUserRole === UserRole.MODERATOR ||

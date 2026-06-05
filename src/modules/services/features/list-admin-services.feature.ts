@@ -1,12 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '@prisma/prisma.service';
-import { Service, Prisma, ServiceStatus } from '@prisma/client';
+import { Prisma, ServiceStatus } from '@prisma/client';
 import { resolvePagination } from '@common/utils/pagination.util';
-
-type ListAdminServicesInput = {
-  page: number;
-  limit: number;
-};
+import { SERVICE_WITH_PROFILE_SELECT } from '../types/service-with-profile.type';
+import { ListAdminServicesInput } from '../types/list-admin-services-input.type';
+import { PaginatedServicesWithProfile } from '../types/paginated-services-with-profile.type';
 
 @Injectable()
 export class ListAdminServicesFeature {
@@ -14,23 +12,24 @@ export class ListAdminServicesFeature {
 
   async execute(
     input: ListAdminServicesInput,
-  ): Promise<{ services: Service[]; total: number }> {
+  ): Promise<PaginatedServicesWithProfile> {
     const { skip, take } = resolvePagination(input.page, input.limit);
 
     const where: Prisma.ServiceWhereInput = {
       status: ServiceStatus.REQUIRE_REVIEW,
     };
 
-    const [services, total] = await Promise.all([
+    const [servicesUserProfile, total] = await this.prisma.$transaction([
       this.prisma.service.findMany({
         where,
         orderBy: { createdAt: 'desc' },
         skip,
         take,
+        select: SERVICE_WITH_PROFILE_SELECT,
       }),
       this.prisma.service.count({ where }),
     ]);
 
-    return { services, total };
+    return { servicesUserProfile, total };
   }
 }
