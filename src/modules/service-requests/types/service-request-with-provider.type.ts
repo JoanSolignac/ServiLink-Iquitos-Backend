@@ -8,6 +8,13 @@ export const SERVICE_REQUEST_WITH_PROVIDER_SELECT = {
   status: true,
   createdAt: true,
   updatedAt: true,
+  user: {
+    select: {
+      devices: {
+        select: { fcmToken: true },
+      },
+    },
+  },
   service: {
     select: {
       userId: true,

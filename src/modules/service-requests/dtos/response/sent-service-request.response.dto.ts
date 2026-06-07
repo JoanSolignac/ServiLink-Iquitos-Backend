@@ -2,24 +2,40 @@ import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { ServiceRequestStatus, ServiceStatus } from '@prisma/client';
 
 class SentServiceSummaryDto {
-  @ApiProperty({ example: 'Plumbing Repair' })
+  @ApiProperty({
+    description: 'Título del servicio solicitado',
+    example: 'Plumbing Repair',
+  })
   declare title: string;
 
-  @ApiProperty({ example: 45.5 })
+  @ApiProperty({ description: 'Precio base del servicio', example: 45.5 })
   declare price: number;
 
-  @ApiProperty({ enum: ServiceStatus, example: ServiceStatus.APPROVED })
+  @ApiProperty({
+    description: 'Estado actual del servicio',
+    enum: ServiceStatus,
+    example: ServiceStatus.APPROVED,
+  })
   declare status: ServiceStatus;
 }
 
 class ProviderSummaryDto {
-  @ApiProperty({ example: 'Carlos' })
+  @ApiProperty({
+    description: 'Nombre del proveedor del servicio',
+    example: 'Carlos',
+  })
   declare firstName: string;
 
-  @ApiProperty({ example: 'López' })
+  @ApiProperty({
+    description: 'Apellido del proveedor del servicio',
+    example: 'López',
+  })
   declare lastName: string;
 
-  @ApiPropertyOptional({ example: 'https://cdn.example.com/avatar.jpg' })
+  @ApiPropertyOptional({
+    description: 'URL de la foto de perfil del proveedor',
+    example: 'https://cdn.example.com/avatar.jpg',
+  })
   declare pictureProfileUrl?: string;
 }
 
