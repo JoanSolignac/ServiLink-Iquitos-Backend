@@ -18,6 +18,9 @@ El proyecto ha sido desarrollado sobre las siguientes tecnologías y herramienta
 - **ORM:** Prisma (con driver adapter `@prisma/adapter-pg` y pool nativo `pg`)
 - **Autenticación y Seguridad:** Passport.js (`@nestjs/passport`), JWT (`passport-jwt`), `jwks-rsa`
 - **Almacenamiento de Archivos:** Supabase Storage (`@supabase/supabase-js`)
+- **Notificaciones Push:** Firebase Admin SDK (`firebase-admin`)
+- **Notificaciones Email:** Brevo (`@getbrevo/brevo`)
+- **Eventos Asíncronos:** NestJS Event Emitter (`@nestjs/event-emitter`)
 - **Hashing:** Argon2 (`argon2`)
 - **Linting y Formato:** ESLint 9, Prettier 3
 - **Testing:** Jest 30
@@ -158,6 +161,8 @@ El proyecto está organizado como una aplicación NestJS estándar, agrupada por
 src/
 ├── modules/
 │   ├── auth/             # Autenticación y sincronización de usuarios
+│   ├── devices/          # Registro de dispositivos para notificaciones push (FCM)
+│   ├── notifications/    # Notificaciones push y email (event-driven, sin endpoints HTTP)
 │   ├── profiles/         # Perfiles de usuario y fotos de perfil
 │   ├── service-requests/ # Solicitudes de servicio entre clientes y proveedores
 │   ├── services/         # Marketplace de servicios
@@ -193,6 +198,7 @@ src/
 - **Paginación:** Centralizada en `src/common/utils/pagination.util.ts`. Aplica valores por defecto (`page: 1`, `limit: 10`) y un límite máximo de 100 elementos por página.
 - **Logging:** Un interceptor global (`LoggingInterceptor`) registra el body y el código de estado de cada petición/respuesta HTTP.
 - **Sincronización de usuarios:** Cada validación de JWT dispara automáticamente `SyncUserFeature`, que crea o vincula el usuario local en base de datos si aún no existe (federated identity sync).
+- **Eventos asíncronos:** El módulo `EventEmitterModule` de NestJS desacopla la lógica de negocio de los side-effects. Por ejemplo, cuando una solicitud de servicio cambia de estado, el feature emite un evento que el `NotificationsModule` escucha para enviar notificaciones sin bloquear la respuesta HTTP.
 
 ## Módulos del Proyecto
 
@@ -278,6 +284,29 @@ Gestión del ciclo de vida de solicitudes de servicio entre clientes y proveedor
 > **Nota sobre `reject` dual:** El endpoint `PATCH /service-requests/:id/reject` tiene semántica dual según el estado actual: el proveedor rechaza desde `PENDING` y el cliente rechaza desde `FINISHED`. Ambos casos son manejados por `RejectServiceRequestFeature`, que resuelve el actor válido en función del estado.
 
 > **Nota sobre los listados:** `GET /service-requests/sent` lista solicitudes donde el usuario autenticado es el cliente (`customerId`). `GET /service-requests/received` lista solicitudes recibidas en servicios donde el usuario es el proveedor. Ambos soportan filtrado por `status` y paginación estándar.
+
+### `DevicesModule`
+
+Registro y actualización de tokens FCM (Firebase Cloud Messaging) para habilitar notificaciones push en los dispositivos de los usuarios.
+
+| Componente | Descripción |
+|---|---|
+| **Controller** | `DevicesController` — `POST /devices/sync` |
+| **Features** | `SyncDeviceFeature` — registra o actualiza el token FCM del dispositivo del usuario autenticado |
+| **DTOs** | `SyncDeviceRequestDto` |
+
+> **Nota sobre el uso:** El cliente móvil debe llamar a `POST /devices/sync` al iniciar la aplicación y cada vez que Firebase renueve el token. El endpoint es idempotente: si el dispositivo ya existe, actualiza el token; si no, lo crea.
+
+### `NotificationsModule`
+
+Módulo interno de notificaciones. No expone endpoints HTTP; opera exclusivamente a través de eventos del ciclo de vida de las solicitudes de servicio.
+
+| Componente | Descripción |
+|---|---|
+| **Servicios** | `EmailSendService` (Brevo), `NotificationPushService` (Firebase Admin) |
+| **Handlers** | `ServiceRequestAcceptedHandler`, `ServiceRequestRejectedHandler`, `ServiceRequestCancelledHandler`, `ServiceRequestFinishedHandler`, `ServiceRequestConfirmedHandler` |
+
+> **Nota sobre el flujo:** Cuando un feature de `ServiceRequestsModule` cambia el estado de una solicitud, emite un evento tipado (ej. `ServiceRequestAcceptedEvent`). Los handlers de `NotificationsModule` escuchan ese evento y despachan notificaciones push al dispositivo del destinatario y/o email, sin bloquear la respuesta HTTP original.
 
 ### Otros componentes
 

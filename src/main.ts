@@ -33,8 +33,26 @@ async function bootstrap(): Promise<void> {
 
   const swaggerConfig = new DocumentBuilder()
     .setTitle('Servilink Iquitos API')
-    .setDescription('API documentation for the Servilink Iquitos backend')
+    .setDescription(
+      'API REST del backend de Servilink Iquitos. Gestiona autenticación federada con Auth0, ' +
+        'perfiles de usuario, marketplace de servicios, solicitudes de servicio y notificaciones ' +
+        'push/email. Todos los endpoints requieren un Bearer Token JWT de Auth0 salvo indicación contraria.',
+    )
     .setVersion('1.0')
+    .addTag('Auth', 'Autenticación y perfil del usuario autenticado')
+    .addTag('Profiles', 'Gestión de perfiles de usuario y foto de perfil')
+    .addTag(
+      'Services',
+      'Marketplace de servicios: publicación, aprobación y búsqueda',
+    )
+    .addTag(
+      'Service Requests',
+      'Solicitudes de servicio: ciclo de vida completo entre clientes y proveedores',
+    )
+    .addTag(
+      'Devices',
+      'Registro de dispositivos para notificaciones push (FCM)',
+    )
     .addBearerAuth(
       {
         type: 'http',

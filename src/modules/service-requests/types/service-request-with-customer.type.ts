@@ -17,6 +17,9 @@ export const SERVICE_REQUEST_WITH_CUSTOMER_SELECT = {
           profilePictureUrl: true,
         },
       },
+      devices: {
+        select: { fcmToken: true },
+      },
     },
   },
   service: {
@@ -25,6 +28,13 @@ export const SERVICE_REQUEST_WITH_CUSTOMER_SELECT = {
       title: true,
       price: true,
       status: true,
+      user: {
+        select: {
+          devices: {
+            select: { fcmToken: true },
+          },
+        },
+      },
     },
   },
 } satisfies Prisma.ServiceRequestsSelect;
