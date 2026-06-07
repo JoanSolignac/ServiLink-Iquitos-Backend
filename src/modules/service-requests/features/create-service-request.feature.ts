@@ -8,6 +8,8 @@ import {
 import { ServiceNotFoundException } from '@modules/services/exceptions/service-not-found.exception';
 import { ServiceRequestUnauthorizedException } from '@modules/service-requests/exceptions/service-request-unauthorized.exception';
 import { ServiceRequestAlreadyExistsException } from '@modules/service-requests/exceptions/service-request-already-exists.exception';
+import { EventEmitter2 } from '@nestjs/event-emitter';
+import { ServiceRequestCreated } from '@modules/service-requests/events/service-request-created.event';
 
 type CreateServiceRequestInput = {
   customerId: string;
@@ -17,7 +19,10 @@ type CreateServiceRequestInput = {
 
 @Injectable()
 export class CreateServiceRequestFeature {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly eventEmitter2: EventEmitter2,
+  ) {}
 
   async execute(
     input: CreateServiceRequestInput,
@@ -52,7 +57,7 @@ export class CreateServiceRequestFeature {
       throw new ServiceRequestAlreadyExistsException();
     }
 
-    return this.prisma.serviceRequests.create({
+    const serviceRequest = await this.prisma.serviceRequests.create({
       data: {
         customerId: input.customerId,
         serviceId: input.serviceId,
@@ -61,5 +66,23 @@ export class CreateServiceRequestFeature {
       },
       select: SERVICE_REQUEST_WITH_PROVIDER_SELECT,
     });
+
+    const user = serviceRequest.service.user;
+    const profile = user.profile;
+    const devices = user.devices.map((device) => device.fcmToken);
+
+    const userName =
+      `${profile?.firstName ?? ''} ${profile?.lastName ?? ''}`.trim();
+
+    const event = new ServiceRequestCreated(
+      devices,
+      userName,
+      user.email,
+      serviceRequest.service.title,
+    );
+
+    await this.eventEmitter2.emitAsync(ServiceRequestCreated.name, event);
+
+    return serviceRequest;
   }
 }

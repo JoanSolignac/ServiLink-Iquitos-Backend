@@ -11,6 +11,7 @@ import { SeederModule } from './seeder/seeder.module';
 import { ServiceRequestsModule } from '@modules/service-requests/service-requests.module';
 import { NotificationsModule } from '@modules/notifications/notifications.module';
 import { EventEmitterModule } from '@nestjs/event-emitter';
+import { DevicesModule } from './modules/devices/devices.module';
 
 @Module({
   imports: [
@@ -30,6 +31,7 @@ import { EventEmitterModule } from '@nestjs/event-emitter';
     ServiceRequestsModule,
     NotificationsModule,
     EventEmitterModule.forRoot({}),
+    DevicesModule,
   ],
 })
 export class AppModule {}

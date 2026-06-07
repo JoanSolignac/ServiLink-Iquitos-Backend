@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '@prisma/prisma.service';
 import { User } from '@prisma/client';
-import { ensureUserExistsByEmail } from '@modules/users/utils/user.util';
+import { ensureUserExistsByEmail } from '@common/utils/utils/user.util';
 
 @Injectable()
 export class FindUserByEmailFeature {
