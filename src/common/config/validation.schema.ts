@@ -35,4 +35,10 @@ export const validationSchema = Joi.object({
   SUPABASE_SERVICE_ROLE_KEY: Joi.string().required(),
 
   SUPABASE_BUCKET_NAME: Joi.string().required(),
+
+  BREVO_API_KEY: Joi.string().required(),
+
+  BREVO_SENDER_EMAIL: Joi.string().email().required(),
+
+  BREVO_SENDER_NAME: Joi.string().required(),
 });
