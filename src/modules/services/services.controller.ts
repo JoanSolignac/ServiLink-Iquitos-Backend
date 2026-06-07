@@ -149,9 +149,11 @@ export class ServicesController {
   })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   async listPublic(
+    @CurrentUser() authCurrentUser: AuthCurrentUser,
     @Query() query: ListPublicServicesQueryDto,
   ): Promise<ServiceWithProfilePaginatedResponseDto> {
     const result = await this.listPublicServicesFeature.execute({
+      currentUserId: authCurrentUser.id,
       search: query.search,
       page: query.page ?? 1,
       limit: query.limit ?? 10,

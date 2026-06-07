@@ -35,4 +35,15 @@ export const validationSchema = Joi.object({
   SUPABASE_SERVICE_ROLE_KEY: Joi.string().required(),
 
   SUPABASE_BUCKET_NAME: Joi.string().required(),
+
+  BREVO_API_KEY: Joi.string().required(),
+
+  BREVO_SENDER_EMAIL: Joi.string().email().required(),
+
+  BREVO_SENDER_NAME: Joi.string().required(),
+
+  // Firebase Cloud Messaging (push notifications)
+  FIREBASE_PROJECT_ID: Joi.string().required(),
+  FIREBASE_CLIENT_EMAIL: Joi.string().email().required(),
+  FIREBASE_PRIVATE_KEY: Joi.string().required(),
 });

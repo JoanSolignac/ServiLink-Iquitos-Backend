@@ -11,6 +11,7 @@ export const SERVICE_WITH_PROFILE_SELECT = {
   user: {
     select: {
       id: true,
+      email: true,
       profile: {
         select: {
           firstName: true,

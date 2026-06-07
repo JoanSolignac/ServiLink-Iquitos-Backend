@@ -16,6 +16,12 @@ export const SERVICE_REQUEST_WITH_PROVIDER_SELECT = {
       status: true,
       user: {
         select: {
+          email: true,
+          devices: {
+            select: {
+              fcmToken: true,
+            },
+          },
           profile: {
             select: {
               firstName: true,

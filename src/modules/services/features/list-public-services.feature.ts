@@ -17,6 +17,7 @@ export class ListPublicServicesFeature {
 
     const where: Prisma.ServiceWhereInput = {
       status: ServiceStatus.APPROVED,
+      userId: { not: input.currentUserId },
     };
 
     if (input.search) {
