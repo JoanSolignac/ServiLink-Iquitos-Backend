@@ -8,9 +8,12 @@ import { ActivateUserFeature } from './features/activate-user.feature';
 import { DeactivateUserFeature } from './features/deactivate-user.feature';
 import { SuspendUserFeature } from './features/suspend-user.feature';
 import { RestoreUserFeature } from './features/restore-user.feature';
+import { ListUsersFeature } from './features/list-users.feature';
+import { UsersController } from './users.controller';
 
 @Module({
   imports: [PrismaModule],
+  controllers: [UsersController],
   providers: [
     FindUserByIdFeature,
     FindUserByEmailFeature,
@@ -20,6 +23,7 @@ import { RestoreUserFeature } from './features/restore-user.feature';
     DeactivateUserFeature,
     SuspendUserFeature,
     RestoreUserFeature,
+    ListUsersFeature,
   ],
   exports: [
     FindUserByIdFeature,

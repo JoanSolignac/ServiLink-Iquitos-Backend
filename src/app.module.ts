@@ -12,6 +12,7 @@ import { ServiceRequestsModule } from '@modules/service-requests/service-request
 import { NotificationsModule } from '@modules/notifications/notifications.module';
 import { EventEmitterModule } from '@nestjs/event-emitter';
 import { DevicesModule } from './modules/devices/devices.module';
+import { RatingsModule } from '@modules/ratings/ratings.module';
 
 @Module({
   imports: [
@@ -32,6 +33,7 @@ import { DevicesModule } from './modules/devices/devices.module';
     NotificationsModule,
     EventEmitterModule.forRoot({}),
     DevicesModule,
+    RatingsModule,
   ],
 })
 export class AppModule {}

@@ -22,6 +22,7 @@ export class DomainExceptionFilter implements ExceptionFilter {
     [DomainErrorCode.USER_ALREADY_INACTIVE]: HttpStatus.CONFLICT,
     [DomainErrorCode.USER_ALREADY_SUSPENDED]: HttpStatus.CONFLICT,
     [DomainErrorCode.USER_NOT_SUSPENDED]: HttpStatus.CONFLICT,
+    [DomainErrorCode.USER_ALREADY_HAS_ROLE]: HttpStatus.CONFLICT,
 
     [DomainErrorCode.SERVICE_UNAUTHORIZED]: HttpStatus.FORBIDDEN,
     [DomainErrorCode.USER_SUSPENDED]: HttpStatus.FORBIDDEN,
@@ -34,6 +35,9 @@ export class DomainExceptionFilter implements ExceptionFilter {
     [DomainErrorCode.SERVICE_REQUEST_UNAUTHORIZED]: HttpStatus.FORBIDDEN,
     [DomainErrorCode.SERVICE_REQUEST_INVALID_TRANSITION]: HttpStatus.CONFLICT,
     [DomainErrorCode.SERVICE_REQUEST_ALREADY_EXISTS]: HttpStatus.CONFLICT,
+
+    [DomainErrorCode.RATING_ALREADY_EXISTS]: HttpStatus.CONFLICT,
+    [DomainErrorCode.RATING_NOT_ALLOWED]: HttpStatus.FORBIDDEN,
   };
 
   catch(exception: DomainException, host: ArgumentsHost) {
