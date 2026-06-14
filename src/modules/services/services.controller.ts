@@ -34,26 +34,51 @@ import { ListPublicServicesFeature } from './features/list-public-services.featu
 import { ListMyServicesFeature } from './features/list-my-services.feature';
 import { ListAdminServicesFeature } from './features/list-admin-services.feature';
 import { PaginateQueryDto } from '@common/dtos/request/paginate-query.request.dto';
-import { ServiceWithProfileResponseDto } from './dtos/response/service-with-profile.response.dto';
+import {
+  ServiceWithProfileResponseDto,
+  ServiceDetailResponseDto,
+  ServiceRatingResponseDto,
+} from './dtos/response/service-with-profile.response.dto';
 import { ServiceWithProfilePaginatedResponseDto } from './dtos/response/service-with-profile-paginated.response.dto';
-import { ServiceWithProfile } from './types/service-with-profile.type';
+import {
+  ServiceWithProfile,
+  ServiceDetail,
+} from './types/service-with-profile.type';
 import { MyService } from '@modules/services/types/my-service.type';
 import { MyServiceResponseDto } from '@modules/services/dtos/response/my-service.response.dto';
 import { MyServicePaginatedResponseDto } from '@modules/services/dtos/response/my-service-paginated.response.dto';
 
 function toResponseServiceWithProfile(
-  serviceUserProfile: ServiceWithProfile,
+  service: ServiceWithProfile,
 ): ServiceWithProfileResponseDto {
   return {
-    serviceId: serviceUserProfile.id,
-    title: serviceUserProfile.title,
-    description: serviceUserProfile.description,
-    keywords: serviceUserProfile.keywords,
-    price: serviceUserProfile.price.toNumber(),
-    status: serviceUserProfile.status,
-    providerName: serviceUserProfile.user.profile!.firstName,
-    providerPictureUrl:
-      serviceUserProfile.user.profile?.profilePictureUrl ?? '',
+    serviceId: service.id,
+    title: service.title,
+    description: service.description,
+    keywords: service.keywords,
+    price: service.price.toNumber(),
+    status: service.status,
+    providerName: service.user.profile!.firstName,
+    providerPictureUrl: service.user.profile?.profilePictureUrl ?? '',
+    averageRating: service.averageRating,
+  };
+}
+
+function toResponseServiceDetail(
+  service: ServiceDetail,
+): ServiceDetailResponseDto {
+  const ratings: ServiceRatingResponseDto[] = service.ratings.map((r) => ({
+    customerName:
+      `${r.customer.profile?.firstName ?? ''} ${r.customer.profile?.lastName ?? ''}`.trim(),
+    customerPictureUrl: r.customer.profile?.profilePictureUrl ?? null,
+    score: r.score,
+    comment: r.comment,
+    createdAt: r.createdAt,
+  }));
+
+  return {
+    ...toResponseServiceWithProfile(service),
+    ratings,
   };
 }
 
@@ -244,21 +269,21 @@ export class ServicesController {
   @ApiResponse({
     status: 200,
     description: 'Service found',
-    type: ServiceWithProfileResponseDto,
+    type: ServiceDetailResponseDto,
   })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @ApiResponse({ status: 404, description: 'Service not found or not visible' })
   async findById(
     @CurrentUser() authCurrentUser: AuthCurrentUser,
     @Param('id') id: string,
-  ): Promise<ServiceWithProfileResponseDto> {
+  ): Promise<ServiceDetailResponseDto> {
     const service = await this.findServiceByIdFeature.execute({
       serviceId: id,
       requestingUserId: authCurrentUser.id,
       requestingUserRole: authCurrentUser.role,
     });
 
-    return toResponseServiceWithProfile(service);
+    return toResponseServiceDetail(service);
   }
 
   @Patch(':id/approve')

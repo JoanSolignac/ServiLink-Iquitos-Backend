@@ -25,4 +25,29 @@ export class ServiceWithProfileResponseDto {
 
   @ApiPropertyOptional({ example: 'https://example.com/photo.jpg' })
   declare providerPictureUrl?: string;
+
+  @ApiProperty({ example: 4.5, minimum: 0, maximum: 5 })
+  declare averageRating: number;
+}
+
+export class ServiceRatingResponseDto {
+  @ApiProperty({ example: 'Juan Pérez' })
+  declare customerName: string;
+
+  @ApiProperty({ example: 'https://example.com/photo.jpg', nullable: true })
+  declare customerPictureUrl: string | null;
+
+  @ApiProperty({ example: 4, minimum: 0, maximum: 5 })
+  declare score: number;
+
+  @ApiProperty({ example: 'Buen servicio.' })
+  declare comment: string;
+
+  @ApiProperty({ example: '2024-01-15T10:30:00.000Z' })
+  declare createdAt: Date;
+}
+
+export class ServiceDetailResponseDto extends ServiceWithProfileResponseDto {
+  @ApiProperty({ type: [ServiceRatingResponseDto] })
+  declare ratings: ServiceRatingResponseDto[];
 }
