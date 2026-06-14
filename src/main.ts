@@ -53,6 +53,8 @@ async function bootstrap(): Promise<void> {
       'Devices',
       'Registro de dispositivos para notificaciones push (FCM)',
     )
+    .addTag('Ratings', 'Calificaciones y reseñas de servicios completados')
+    .addTag('Users', 'Gestión de usuarios y administración de roles')
     .addBearerAuth(
       {
         type: 'http',
