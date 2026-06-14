@@ -148,6 +148,12 @@ El proyecto valida estrictamente las variables de entorno mediante un esquema Jo
 | `SUPABASE_URL` | URL del proyecto de Supabase (ej. `https://<project-id>.supabase.co`) | `https://abc123.supabase.co` | Sí |
 | `SUPABASE_SERVICE_ROLE_KEY` | Service Role Key de Supabase. **Mantener secreta, nunca exponer al frontend.** | `eyJhbGci...` | Sí |
 | `SUPABASE_BUCKET_NAME` | Nombre del bucket de Supabase Storage para archivos de perfil | `servilink-bucket` | Sí |
+| `BREVO_API_KEY` | API key de Brevo para el envío de emails transaccionales | `xkeysib-...` | Sí |
+| `BREVO_SENDER_EMAIL` | Dirección de email remitente para los envíos de Brevo | `no-reply@tudominio.com` | Sí |
+| `BREVO_SENDER_NAME` | Nombre visible del remitente en los emails | `ServiLink` | Sí |
+| `FIREBASE_PROJECT_ID` | ID del proyecto de Firebase para push notifications | `my-firebase-project` | Sí |
+| `FIREBASE_CLIENT_EMAIL` | Email de la cuenta de servicio de Firebase Admin SDK | `firebase-adminsdk-xxxxx@project.iam.gserviceaccount.com` | Sí |
+| `FIREBASE_PRIVATE_KEY` | Clave privada de la cuenta de servicio de Firebase. **Mantener secreta, nunca exponer.** | `"-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----\n"` | Sí |
 
 > **Atención:** Valores como `api/V1` (con mayúscula) harán fallar la validación del esquema Joi.
 
@@ -166,7 +172,7 @@ src/
 │   ├── profiles/         # Perfiles de usuario y fotos de perfil
 │   ├── service-requests/ # Solicitudes de servicio entre clientes y proveedores
 │   ├── services/         # Marketplace de servicios
-│   └── users/            # Gestión de usuarios (sin endpoints HTTP)
+│   └── users/            # Gestión de usuarios y administración de roles
 ├── common/               # Filtros, guards, decoradores, pipes, utilidades
 ├── prisma/               # Configuración y servicio de Prisma
 ├── seeder/               # Inicialización de datos base
@@ -206,15 +212,14 @@ Cada módulo representa un dominio de negocio y agrupa controladores, features, 
 
 ### `UsersModule`
 
-Gestión del ciclo de vida de usuarios del sistema: consulta, actualización de rol/email y gestión de estado (activar, suspender, restaurar).
-
-> **Nota importante:** Este módulo **no expone endpoints HTTP**. Sus features son consumidos internamente por otros módulos (principalmente `AuthModule` durante la sincronización de identidades federadas).
+Gestión del ciclo de vida de usuarios del sistema: consulta, actualización de rol/email, gestión de estado (activar, suspender, restaurar) y administración de roles.
 
 | Componente | Descripción |
 |---|---|
-| **Features** | `FindUserById`, `FindUserByEmail`, `ChangeUserRole`, `UpdateUserEmail`, `ActivateUser`, `DeactivateUser`, `SuspendUser`, `RestoreUser` |
-| **DTOs** | `UserResponseDto` |
-| **Excepciones** | `UserNotFoundException`, `UserEmailAlreadyExistsException`, `UserAlreadyActiveException`, `UserAlreadyInactiveException`, `UserAlreadySuspendedException`, `UserNotSuspendedException`, `UserSuspendedException` |
+| **Controller** | `UsersController` — `GET /users`, `PATCH /users/:id/role` (solo `ADMINISTRATOR`) |
+| **Features** | `FindUserById`, `FindUserByEmail`, `ListUsersFeature`, `ChangeUserRole`, `UpdateUserEmail`, `ActivateUser`, `DeactivateUser`, `SuspendUser`, `RestoreUser` |
+| **DTOs** | `UserResponseDto`, `UserWithProfileResponseDto`, `UserWithProfilePaginatedResponseDto`, `ListUsersQueryDto`, `ChangeUserRoleRequestDto` |
+| **Excepciones** | `UserNotFoundException`, `UserEmailAlreadyExistsException`, `UserAlreadyActiveException`, `UserAlreadyInactiveException`, `UserAlreadySuspendedException`, `UserNotSuspendedException`, `UserSuspendedException`, `UserAlreadyHasRoleException` |
 
 > **Nota sobre `UserRole`:** El enum `UserRole` proviene de Prisma (`@prisma/client`) y se utiliza tanto en el módulo de usuarios como en los guards y decoradores de autenticación.
 
@@ -230,7 +235,7 @@ Gestión de la autenticación de usuarios federados mediante Auth0, control de r
 | **Guards** | `JwtAuthGuard`, `RoleGuard` |
 | **Decoradores** | `@CurrentUser`, `@UseAuth` |
 | **DTOs** | `MeResponseDto` |
-| **Excepciones** | `AuthIdentityNotFoundException`, `InvalidProviderException` |
+| **Excepciones** | `AuthIdentityNotFoundException`, `InvalidProviderException`, `ProviderConflictException` |
 
 > **Nota sobre `MeResponseDto`:** La respuesta de `GET /auth/me` incluye el campo `hasProfile: boolean`, que permite al cliente detectar si el usuario ya completó su perfil o debe ser redirigido al formulario de bienvenida.
 
@@ -297,6 +302,19 @@ Registro y actualización de tokens FCM (Firebase Cloud Messaging) para habilita
 
 > **Nota sobre el uso:** El cliente móvil debe llamar a `POST /devices/sync` al iniciar la aplicación y cada vez que Firebase renueve el token. El endpoint es idempotente: si el dispositivo ya existe, actualiza el token; si no, lo crea.
 
+### `RatingsModule`
+
+Gestión de calificaciones y reseñas que los clientes realizan sobre los servicios una vez completado el flujo de solicitud.
+
+| Componente | Descripción |
+|---|---|
+| **Controller** | `RatingsController` — `POST /service-requests/:id/rating`, `POST /services/:id/rating` |
+| **Features** | `CreateRatingFeature` — califica por ID de solicitud; `CreateRatingByServiceFeature` — busca la solicitud elegible automáticamente por ID de servicio |
+| **DTOs** | `CreateRatingRequestDto`, `RatingResponseDto` |
+| **Excepciones** | `RatingAlreadyExistsException`, `RatingNotAllowedException` |
+
+> **Nota sobre elegibilidad:** Solo se puede calificar si la solicitud de servicio está en estado `CONFIRMED` y aún no ha sido calificada (`isRated: false`). Tras crear la calificación, el campo `isRated` de la solicitud y el `averageRating` del servicio se actualizan en la misma transacción.
+
 ### `NotificationsModule`
 
 Módulo interno de notificaciones. No expone endpoints HTTP; opera exclusivamente a través de eventos del ciclo de vida de las solicitudes de servicio.
@@ -304,7 +322,7 @@ Módulo interno de notificaciones. No expone endpoints HTTP; opera exclusivament
 | Componente | Descripción |
 |---|---|
 | **Servicios** | `EmailSendService` (Brevo), `NotificationPushService` (Firebase Admin) |
-| **Handlers** | `ServiceRequestAcceptedHandler`, `ServiceRequestRejectedHandler`, `ServiceRequestCancelledHandler`, `ServiceRequestFinishedHandler`, `ServiceRequestConfirmedHandler` |
+| **Handlers** | `ServiceCreatedHandler`, `ServiceApprovedHandler`, `ServiceRejectedHandler`, `ServiceRequestCreatedHandler`, `ServiceRequestAcceptedHandler`, `ServiceRequestRejectedHandler`, `ServiceRequestCancelledHandler`, `ServiceRequestFinishedHandler`, `ServiceRequestConfirmedHandler` |
 
 > **Nota sobre el flujo:** Cuando un feature de `ServiceRequestsModule` cambia el estado de una solicitud, emite un evento tipado (ej. `ServiceRequestAcceptedEvent`). Los handlers de `NotificationsModule` escuchan ese evento y despachan notificaciones push al dispositivo del destinatario y/o email, sin bloquear la respuesta HTTP original.
 
