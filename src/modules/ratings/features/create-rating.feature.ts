@@ -1,12 +1,14 @@
 import { Injectable } from '@nestjs/common';
 import { ServiceRequestStatus } from '@prisma/client';
 import { PrismaService } from '@prisma/prisma.service';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 import { RatingAlreadyExistsException } from '@modules/ratings/exceptions/rating-already-exists.exception';
 import { RatingNotAllowedException } from '@modules/ratings/exceptions/rating-not-allowed.exception';
 import {
   RATING_SELECT,
   RatingResult,
 } from '@modules/ratings/types/rating.type';
+import { RatingCreated } from '@modules/ratings/events/rating-created.event';
 
 const RATEABLE_STATUSES: ServiceRequestStatus[] = [
   ServiceRequestStatus.CONFIRMED,
@@ -15,7 +17,10 @@ const RATEABLE_STATUSES: ServiceRequestStatus[] = [
 
 @Injectable()
 export class CreateRatingFeature {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly eventEmitter: EventEmitter2,
+  ) {}
 
   async execute(
     serviceRequestId: string,
@@ -31,6 +36,18 @@ export class CreateRatingFeature {
         serviceId: true,
         status: true,
         isRated: true,
+        service: {
+          select: {
+            title: true,
+            user: {
+              select: {
+                email: true,
+                profile: { select: { firstName: true, lastName: true } },
+                devices: { select: { fcmToken: true } },
+              },
+            },
+          },
+        },
       },
     });
 
@@ -81,6 +98,22 @@ export class CreateRatingFeature {
       where: { id: serviceRequest.serviceId },
       data: { averageRating: agg._avg.score ?? 0 },
     });
+
+    const provider = serviceRequest.service.user;
+    const providerName =
+      `${provider.profile?.firstName ?? ''} ${provider.profile?.lastName ?? ''}`.trim();
+    const fcmTokens = provider.devices.map((d) => d.fcmToken);
+
+    await this.eventEmitter.emitAsync(
+      RatingCreated.name,
+      new RatingCreated(
+        fcmTokens,
+        provider.email,
+        providerName,
+        serviceRequest.service.title,
+        score,
+      ),
+    );
 
     return rating;
   }

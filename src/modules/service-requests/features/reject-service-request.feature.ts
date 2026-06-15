@@ -51,14 +51,17 @@ export class RejectServiceRequestFeature {
 
     // Proveedor rechaza desde PENDING → notificar al cliente
     // Cliente rechaza desde FINISHED → notificar al proveedor
-    const fcmTokens = rejectedByProvider
-      ? updated.user.devices.map((d) => d.fcmToken)
-      : updated.service.user.devices.map((d) => d.fcmToken);
+    const recipient = rejectedByProvider ? updated.user : updated.service.user;
+    const recipientName =
+      `${recipient.profile?.firstName ?? ''} ${recipient.profile?.lastName ?? ''}`.trim();
+    const fcmTokens = recipient.devices.map((d) => d.fcmToken);
 
     await this.eventEmitter.emitAsync(
       ServiceRequestRejected.name,
       new ServiceRequestRejected(
         fcmTokens,
+        recipient.email,
+        recipientName,
         updated.service.title,
         rejectedByProvider,
       ),

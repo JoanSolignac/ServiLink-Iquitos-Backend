@@ -10,6 +10,13 @@ export const SERVICE_REQUEST_WITH_PROVIDER_SELECT = {
   updatedAt: true,
   user: {
     select: {
+      email: true,
+      profile: {
+        select: {
+          firstName: true,
+          lastName: true,
+        },
+      },
       devices: {
         select: { fcmToken: true },
       },

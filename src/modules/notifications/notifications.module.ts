@@ -8,6 +8,7 @@ import { ServiceRequestRejectedHandler } from '@modules/notifications/handlers/s
 import { ServiceRequestCancelledHandler } from '@modules/notifications/handlers/service-request/service-request-cancelled.handler';
 import { ServiceRequestFinishedHandler } from '@modules/notifications/handlers/service-request/service-request-finished.handler';
 import { ServiceRequestConfirmedHandler } from '@modules/notifications/handlers/service-request/service-request-confirmed.handler';
+import { RatingCreatedHandler } from '@modules/notifications/handlers/rating/rating-created.handler';
 import { BrevoEmailProvider } from '@modules/notifications/providers/brevo-email.provider';
 import { FirebasePushProvider } from '@modules/notifications/providers/firebase-push.provider';
 import { EmailSendService } from '@modules/notifications/services/email-send.service';
@@ -21,7 +22,7 @@ import { NotificationPushService } from '@modules/notifications/services/notific
     ServiceCreatedHandler,
     ServiceApprovedHandler,
     ServiceRejectedHandler,
-    // Push — solicitudes de servicio
+    // Push + Email — solicitudes de servicio
     FirebasePushProvider,
     NotificationPushService,
     ServiceRequestCreatedHandler,
@@ -30,6 +31,8 @@ import { NotificationPushService } from '@modules/notifications/services/notific
     ServiceRequestCancelledHandler,
     ServiceRequestFinishedHandler,
     ServiceRequestConfirmedHandler,
+    // Push + Email — valoraciones
+    RatingCreatedHandler,
   ],
 })
 export class NotificationsModule {}

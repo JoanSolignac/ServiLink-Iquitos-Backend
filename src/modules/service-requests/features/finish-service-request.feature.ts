@@ -41,11 +41,19 @@ export class FinishServiceRequestFeature {
       select: SERVICE_REQUEST_WITH_CUSTOMER_SELECT,
     });
 
-    const fcmTokens = updated.user.devices.map((d) => d.fcmToken);
+    const customer = updated.user;
+    const customerName =
+      `${customer.profile?.firstName ?? ''} ${customer.profile?.lastName ?? ''}`.trim();
+    const fcmTokens = customer.devices.map((d) => d.fcmToken);
 
     await this.eventEmitter.emitAsync(
       ServiceRequestFinished.name,
-      new ServiceRequestFinished(fcmTokens, updated.service.title),
+      new ServiceRequestFinished(
+        fcmTokens,
+        customer.email,
+        customerName,
+        updated.service.title,
+      ),
     );
 
     return updated;
