@@ -9,6 +9,7 @@ import { RejectServiceRequestFeature } from './features/reject-service-request.f
 import { CancelServiceRequestFeature } from './features/cancel-service-request.feature';
 import { FinishServiceRequestFeature } from './features/finish-service-request.feature';
 import { ConfirmServiceRequestFeature } from './features/confirm-service-request.feature';
+import { GetServiceRequestByIdFeature } from './features/get-service-request-by-id.feature';
 
 @Module({
   imports: [PrismaModule],
@@ -22,6 +23,7 @@ import { ConfirmServiceRequestFeature } from './features/confirm-service-request
     CancelServiceRequestFeature,
     FinishServiceRequestFeature,
     ConfirmServiceRequestFeature,
+    GetServiceRequestByIdFeature,
   ],
 })
 export class ServiceRequestsModule {}
