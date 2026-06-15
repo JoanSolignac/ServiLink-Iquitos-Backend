@@ -32,9 +32,12 @@ import { RejectServiceRequestFeature } from './features/reject-service-request.f
 import { CancelServiceRequestFeature } from './features/cancel-service-request.feature';
 import { FinishServiceRequestFeature } from './features/finish-service-request.feature';
 import { ConfirmServiceRequestFeature } from './features/confirm-service-request.feature';
+import { GetServiceRequestByIdFeature } from './features/get-service-request-by-id.feature';
+import { ServiceRequestDetailResponseDto } from './dtos/response/service-request-detail.response.dto';
 import {
   toReceivedResponse,
   toSentResponse,
+  toDetailResponse,
 } from '@modules/service-requests/utils/service-request-to-response.util';
 
 @ApiTags('Service Requests')
@@ -51,6 +54,7 @@ export class ServiceRequestsController {
     private readonly cancelServiceRequestFeature: CancelServiceRequestFeature,
     private readonly finishServiceRequestFeature: FinishServiceRequestFeature,
     private readonly confirmServiceRequestFeature: ConfirmServiceRequestFeature,
+    private readonly getServiceRequestByIdFeature: GetServiceRequestByIdFeature,
   ) {}
 
   @Post('services/:serviceId/requests')
@@ -136,6 +140,26 @@ export class ServiceRequestsController {
       data: data.map(toReceivedResponse),
       meta: { page: query.page ?? 1, limit: query.limit ?? 10, total },
     };
+  }
+
+  @Get('service-requests/:id')
+  @ApiOperation({
+    summary: 'Get a service request by ID (customer or provider perspective)',
+  })
+  @ApiParam({ name: 'id', description: 'Service request ID' })
+  @ApiResponse({
+    status: 200,
+    description: 'Service request detail',
+    type: ServiceRequestDetailResponseDto,
+  })
+  @ApiResponse({ status: 403, description: 'Not part of this request' })
+  @ApiResponse({ status: 404, description: 'Service request not found' })
+  async findById(
+    @CurrentUser() user: AuthCurrentUser,
+    @Param('id') id: string,
+  ): Promise<ServiceRequestDetailResponseDto> {
+    const sr = await this.getServiceRequestByIdFeature.execute(id, user.id);
+    return toDetailResponse(sr, user.id);
   }
 
   @Patch('service-requests/:id/accept')
