@@ -41,11 +41,19 @@ export class ConfirmServiceRequestFeature {
       select: SERVICE_REQUEST_WITH_PROVIDER_SELECT,
     });
 
-    const fcmTokens = updated.service.user.devices.map((d) => d.fcmToken);
+    const provider = updated.service.user;
+    const providerName =
+      `${provider.profile?.firstName ?? ''} ${provider.profile?.lastName ?? ''}`.trim();
+    const fcmTokens = provider.devices.map((d) => d.fcmToken);
 
     await this.eventEmitter.emitAsync(
       ServiceRequestConfirmed.name,
-      new ServiceRequestConfirmed(fcmTokens, updated.service.title),
+      new ServiceRequestConfirmed(
+        fcmTokens,
+        provider.email,
+        providerName,
+        updated.service.title,
+      ),
     );
 
     return updated;

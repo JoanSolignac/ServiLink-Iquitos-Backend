@@ -46,13 +46,20 @@ export class CancelServiceRequestFeature {
 
     // Cliente cancela → notificar al proveedor
     // Proveedor cancela → notificar al cliente
-    const fcmTokens = isCustomer
-      ? updated.service.user.devices.map((d) => d.fcmToken)
-      : updated.user.devices.map((d) => d.fcmToken);
+    const recipient = isCustomer ? updated.service.user : updated.user;
+    const recipientName =
+      `${recipient.profile?.firstName ?? ''} ${recipient.profile?.lastName ?? ''}`.trim();
+    const fcmTokens = recipient.devices.map((d) => d.fcmToken);
 
     await this.eventEmitter.emitAsync(
       ServiceRequestCancelled.name,
-      new ServiceRequestCancelled(fcmTokens, updated.service.title, isCustomer),
+      new ServiceRequestCancelled(
+        fcmTokens,
+        recipient.email,
+        recipientName,
+        updated.service.title,
+        isCustomer,
+      ),
     );
 
     return updated;

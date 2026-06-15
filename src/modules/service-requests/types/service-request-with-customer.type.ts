@@ -10,6 +10,7 @@ export const SERVICE_REQUEST_WITH_CUSTOMER_SELECT = {
   updatedAt: true,
   user: {
     select: {
+      email: true,
       profile: {
         select: {
           firstName: true,
@@ -30,6 +31,13 @@ export const SERVICE_REQUEST_WITH_CUSTOMER_SELECT = {
       status: true,
       user: {
         select: {
+          email: true,
+          profile: {
+            select: {
+              firstName: true,
+              lastName: true,
+            },
+          },
           devices: {
             select: { fcmToken: true },
           },

@@ -67,17 +67,20 @@ export class CreateServiceRequestFeature {
       select: SERVICE_REQUEST_WITH_PROVIDER_SELECT,
     });
 
-    const user = serviceRequest.service.user;
-    const profile = user.profile;
-    const devices = user.devices.map((device) => device.fcmToken);
+    const provider = serviceRequest.service.user;
+    const devices = provider.devices.map((device) => device.fcmToken);
+    const providerName =
+      `${provider.profile?.firstName ?? ''} ${provider.profile?.lastName ?? ''}`.trim();
 
-    const userName =
-      `${profile?.firstName ?? ''} ${profile?.lastName ?? ''}`.trim();
+    const customer = serviceRequest.user;
+    const customerName =
+      `${customer.profile?.firstName ?? ''} ${customer.profile?.lastName ?? ''}`.trim();
 
     const event = new ServiceRequestCreated(
       devices,
-      userName,
-      user.email,
+      providerName,
+      provider.email,
+      customerName,
       serviceRequest.service.title,
     );
 
