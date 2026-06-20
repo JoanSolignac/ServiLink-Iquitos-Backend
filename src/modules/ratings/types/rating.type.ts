@@ -2,10 +2,12 @@ import { Prisma } from '@prisma/client';
 
 export const RATING_SELECT = {
   id: true,
-  serviceRequestId: true,
+  serviceId: true,
+  customerId: true,
   score: true,
   comment: true,
   createdAt: true,
+  updatedAt: true,
 } satisfies Prisma.RatingSelect;
 
 export type RatingResult = Prisma.RatingGetPayload<{

@@ -1,5 +1,4 @@
 import { Injectable } from '@nestjs/common';
-import { ServiceRequestStatus } from '@prisma/client';
 import { PrismaService } from '@prisma/prisma.service';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { RatingAlreadyExistsException } from '@modules/ratings/exceptions/rating-already-exists.exception';
@@ -10,11 +9,6 @@ import {
 } from '@modules/ratings/types/rating.type';
 import { RatingCreated } from '@modules/ratings/events/rating-created.event';
 
-const RATEABLE_STATUSES: ServiceRequestStatus[] = [
-  ServiceRequestStatus.CONFIRMED,
-  ServiceRequestStatus.REJECTED,
-];
-
 @Injectable()
 export class CreateRatingFeature {
   constructor(
@@ -23,83 +17,52 @@ export class CreateRatingFeature {
   ) {}
 
   async execute(
-    serviceRequestId: string,
+    serviceId: string,
     customerId: string,
     score: number,
     comment: string,
   ): Promise<RatingResult> {
-    const serviceRequest = await this.prisma.serviceRequests.findUnique({
-      where: { id: serviceRequestId },
+    const service = await this.prisma.service.findUnique({
+      where: { id: serviceId },
       select: {
         id: true,
-        customerId: true,
-        serviceId: true,
-        status: true,
-        isRated: true,
-        service: {
+        title: true,
+        userId: true,
+        user: {
           select: {
-            title: true,
-            user: {
-              select: {
-                email: true,
-                profile: { select: { firstName: true, lastName: true } },
-                devices: { select: { fcmToken: true } },
-              },
-            },
+            email: true,
+            profile: { select: { firstName: true, lastName: true } },
+            devices: { select: { fcmToken: true } },
           },
         },
       },
     });
 
-    if (!serviceRequest) {
-      throw new RatingNotAllowedException(
-        'Service request not found or not rateable',
-      );
+    if (!service) {
+      throw new RatingNotAllowedException('Service not found');
     }
 
-    if (serviceRequest.customerId !== customerId) {
-      throw new RatingNotAllowedException(
-        'Only the customer can rate this service request',
-      );
+    if (service.userId === customerId) {
+      throw new RatingNotAllowedException('You cannot rate your own service');
     }
 
-    if (!RATEABLE_STATUSES.includes(serviceRequest.status)) {
-      throw new RatingNotAllowedException(
-        'Service request must be CONFIRMED or REJECTED to be rated',
-      );
-    }
+    const existing = await this.prisma.rating.findUnique({
+      where: { serviceId_customerId: { serviceId, customerId } },
+      select: { id: true },
+    });
 
-    if (serviceRequest.isRated) {
+    if (existing) {
       throw new RatingAlreadyExistsException();
     }
 
     const rating = await this.prisma.rating.create({
-      data: {
-        serviceRequestId,
-        serviceId: serviceRequest.serviceId,
-        customerId,
-        score,
-        comment,
-      },
+      data: { serviceId, customerId, score, comment },
       select: RATING_SELECT,
     });
 
-    await this.prisma.serviceRequests.update({
-      where: { id: serviceRequestId },
-      data: { isRated: true },
-    });
+    await this.recalculateAverageRating(serviceId);
 
-    const agg = await this.prisma.rating.aggregate({
-      where: { serviceId: serviceRequest.serviceId },
-      _avg: { score: true },
-    });
-
-    await this.prisma.service.update({
-      where: { id: serviceRequest.serviceId },
-      data: { averageRating: agg._avg.score ?? 0 },
-    });
-
-    const provider = serviceRequest.service.user;
+    const provider = service.user;
     const providerName =
       `${provider.profile?.firstName ?? ''} ${provider.profile?.lastName ?? ''}`.trim();
     const fcmTokens = provider.devices.map((d) => d.fcmToken);
@@ -110,11 +73,23 @@ export class CreateRatingFeature {
         fcmTokens,
         provider.email,
         providerName,
-        serviceRequest.service.title,
+        service.title,
         score,
+        serviceId,
       ),
     );
 
     return rating;
+  }
+
+  private async recalculateAverageRating(serviceId: string): Promise<void> {
+    const agg = await this.prisma.rating.aggregate({
+      where: { serviceId },
+      _avg: { score: true },
+    });
+    await this.prisma.service.update({
+      where: { id: serviceId },
+      data: { averageRating: agg._avg.score ?? 0 },
+    });
   }
 }

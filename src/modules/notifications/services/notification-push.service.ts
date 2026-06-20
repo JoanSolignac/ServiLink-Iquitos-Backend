@@ -7,6 +7,11 @@ export class NotificationPushService {
   constructor(private readonly firebase: FirebasePushProvider) {}
 
   async send(input: SendPushInput): Promise<void> {
-    await this.firebase.sendToTokens(input.fcmTokens, input.title, input.body);
+    await this.firebase.sendToTokens(
+      input.fcmTokens,
+      input.title,
+      input.body,
+      input.data,
+    );
   }
 }

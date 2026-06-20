@@ -5,7 +5,10 @@ export class RatingResponseDto {
   declare id: string;
 
   @ApiProperty({ example: 'b2c3d4e5-f6a7-8901-bcde-f01234567891' })
-  declare serviceRequestId: string;
+  declare serviceId: string;
+
+  @ApiProperty({ example: 'c3d4e5f6-a7b8-9012-cdef-012345678912' })
+  declare customerId: string;
 
   @ApiProperty({ example: 4, minimum: 0, maximum: 5 })
   declare score: number;
@@ -15,4 +18,7 @@ export class RatingResponseDto {
 
   @ApiProperty({ example: '2024-01-15T10:30:00.000Z' })
   declare createdAt: Date;
+
+  @ApiProperty({ example: '2024-01-15T10:30:00.000Z' })
+  declare updatedAt: Date;
 }

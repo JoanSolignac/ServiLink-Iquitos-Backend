@@ -17,8 +17,9 @@ export class RatingCreatedHandler {
     await Promise.all([
       this.pushService.send({
         fcmTokens: event.fcmTokens,
-        title: 'Nueva valoración recibida',
-        body: `Tu servicio "${event.serviceTitle}" recibió una valoración de ${event.score} estrellas.`,
+        title: 'Nueva valoración',
+        body: `Alguien ha valorado tu servicio "${event.serviceTitle}"`,
+        data: { service_id: event.serviceId },
       }),
       this.emailSend.send({
         to: [{ name: event.providerName, email: event.providerEmail }],

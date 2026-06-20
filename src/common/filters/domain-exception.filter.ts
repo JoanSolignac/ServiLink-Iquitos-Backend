@@ -31,13 +31,13 @@ export class DomainExceptionFilter implements ExceptionFilter {
     [DomainErrorCode.PROVIDER_CONFLICT]: HttpStatus.CONFLICT,
     [DomainErrorCode.SERVICE_ALREADY_APPROVED]: HttpStatus.CONFLICT,
 
-    [DomainErrorCode.SERVICE_REQUEST_NOT_FOUND]: HttpStatus.NOT_FOUND,
-    [DomainErrorCode.SERVICE_REQUEST_UNAUTHORIZED]: HttpStatus.FORBIDDEN,
-    [DomainErrorCode.SERVICE_REQUEST_INVALID_TRANSITION]: HttpStatus.CONFLICT,
-    [DomainErrorCode.SERVICE_REQUEST_ALREADY_EXISTS]: HttpStatus.CONFLICT,
-
     [DomainErrorCode.RATING_ALREADY_EXISTS]: HttpStatus.CONFLICT,
     [DomainErrorCode.RATING_NOT_ALLOWED]: HttpStatus.FORBIDDEN,
+    [DomainErrorCode.RATING_NOT_FOUND]: HttpStatus.NOT_FOUND,
+
+    [DomainErrorCode.FAVORITE_ALREADY_EXISTS]: HttpStatus.CONFLICT,
+    [DomainErrorCode.FAVORITE_NOT_FOUND]: HttpStatus.NOT_FOUND,
+    [DomainErrorCode.FAVORITE_NOT_ALLOWED]: HttpStatus.FORBIDDEN,
   };
 
   catch(exception: DomainException, host: ArgumentsHost) {

@@ -1,6 +1,8 @@
 import {
   Controller,
   Post,
+  Patch,
+  Delete,
   Param,
   Body,
   HttpCode,
@@ -19,8 +21,10 @@ import { CurrentUser } from '@common/decorators/current-user.decorator';
 import type { AuthCurrentUser } from '@common/interfaces/auth-current-user.interface';
 import { UseAuth } from '@common/decorators/use-auth.decorator';
 import { CreateRatingFeature } from './features/create-rating.feature';
-import { CreateRatingByServiceFeature } from './features/create-rating-by-service.feature';
+import { UpdateRatingFeature } from './features/update-rating.feature';
+import { DeleteRatingFeature } from './features/delete-rating.feature';
 import { CreateRatingRequestDto } from './dtos/request/create-rating.request.dto';
+import { UpdateRatingRequestDto } from './dtos/request/update-rating.request.dto';
 import { RatingResponseDto } from './dtos/response/rating.response.dto';
 
 @ApiTags('Ratings')
@@ -29,54 +33,14 @@ import { RatingResponseDto } from './dtos/response/rating.response.dto';
 export class RatingsController {
   constructor(
     private readonly createRatingFeature: CreateRatingFeature,
-    private readonly createRatingByServiceFeature: CreateRatingByServiceFeature,
+    private readonly updateRatingFeature: UpdateRatingFeature,
+    private readonly deleteRatingFeature: DeleteRatingFeature,
   ) {}
-
-  @Post('service-requests/:id/rating')
-  @UseAuth(UserRole.USER)
-  @HttpCode(HttpStatus.CREATED)
-  @ApiOperation({ summary: 'Rate a service request by its ID' })
-  @ApiParam({
-    name: 'id',
-    description: 'Service Request ID',
-    example: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890',
-  })
-  @ApiBody({ type: CreateRatingRequestDto })
-  @ApiResponse({
-    status: 201,
-    description: 'Rating created successfully',
-    type: RatingResponseDto,
-  })
-  @ApiResponse({ status: 401, description: 'Unauthorized' })
-  @ApiResponse({
-    status: 403,
-    description:
-      'Forbidden — not the customer or request not in a rateable status',
-  })
-  @ApiResponse({
-    status: 409,
-    description: 'Rating already exists for this service request',
-  })
-  async createByServiceRequest(
-    @CurrentUser() authCurrentUser: AuthCurrentUser,
-    @Param('id') id: string,
-    @Body() dto: CreateRatingRequestDto,
-  ): Promise<RatingResponseDto> {
-    return this.createRatingFeature.execute(
-      id,
-      authCurrentUser.id,
-      dto.score,
-      dto.comment,
-    );
-  }
 
   @Post('services/:id/rating')
   @UseAuth(UserRole.USER)
   @HttpCode(HttpStatus.CREATED)
-  @ApiOperation({
-    summary:
-      'Rate a service by its ID — finds the most recent eligible service request automatically',
-  })
+  @ApiOperation({ summary: 'Rate a service (one rating per user per service)' })
   @ApiParam({
     name: 'id',
     description: 'Service ID',
@@ -91,19 +55,71 @@ export class RatingsController {
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @ApiResponse({
     status: 403,
-    description:
-      'Forbidden — no eligible service request found (must be CONFIRMED or REJECTED and not yet rated)',
+    description: 'Forbidden — cannot rate your own service',
   })
-  async createByService(
+  @ApiResponse({
+    status: 409,
+    description: 'Rating already exists for this service',
+  })
+  async create(
     @CurrentUser() authCurrentUser: AuthCurrentUser,
     @Param('id') id: string,
     @Body() dto: CreateRatingRequestDto,
   ): Promise<RatingResponseDto> {
-    return this.createRatingByServiceFeature.execute(
+    return this.createRatingFeature.execute(
       id,
       authCurrentUser.id,
       dto.score,
       dto.comment,
     );
+  }
+
+  @Patch('services/:id/rating')
+  @UseAuth(UserRole.USER)
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Update your rating for a service' })
+  @ApiParam({
+    name: 'id',
+    description: 'Service ID',
+    example: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890',
+  })
+  @ApiBody({ type: UpdateRatingRequestDto })
+  @ApiResponse({
+    status: 200,
+    description: 'Rating updated successfully',
+    type: RatingResponseDto,
+  })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 404, description: 'Rating not found' })
+  async update(
+    @CurrentUser() authCurrentUser: AuthCurrentUser,
+    @Param('id') id: string,
+    @Body() dto: UpdateRatingRequestDto,
+  ): Promise<RatingResponseDto> {
+    return this.updateRatingFeature.execute(
+      id,
+      authCurrentUser.id,
+      dto.score,
+      dto.comment,
+    );
+  }
+
+  @Delete('services/:id/rating')
+  @UseAuth(UserRole.USER)
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @ApiOperation({ summary: 'Delete your rating for a service' })
+  @ApiParam({
+    name: 'id',
+    description: 'Service ID',
+    example: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890',
+  })
+  @ApiResponse({ status: 204, description: 'Rating deleted successfully' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 404, description: 'Rating not found' })
+  async delete(
+    @CurrentUser() authCurrentUser: AuthCurrentUser,
+    @Param('id') id: string,
+  ): Promise<void> {
+    return this.deleteRatingFeature.execute(id, authCurrentUser.id);
   }
 }

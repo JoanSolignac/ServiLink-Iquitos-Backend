@@ -5,6 +5,7 @@ import {
   Patch,
   Param,
   Body,
+  Query,
   UseInterceptors,
   UploadedFile,
 } from '@nestjs/common';
@@ -21,13 +22,16 @@ import {
 import { CurrentUser } from '@common/decorators/current-user.decorator';
 import type { AuthCurrentUser } from '@common/interfaces/auth-current-user.interface';
 import { UseAuth } from '@common/decorators/use-auth.decorator';
+import { PaginateQueryDto } from '@common/dtos/request/paginate-query.request.dto';
 import { CreateProfileRequestDto } from './dtos/request/create-profile.request.dto';
 import { UpdateProfileRequestDto } from './dtos/request/update-profile.request.dto';
 import { ProfileResponseDto } from './dtos/response/profile.response.dto';
+import { ProviderPublicProfileResponseDto } from './dtos/response/provider-public-profile.response.dto';
 import { ProfilePictureValidationPipe } from '@common/pipes/profile-picture-validation.pipe';
 import { CreateProfileFeature } from './features/create-profile.feature';
 import { UpdateProfileFeature } from './features/update-profile.feature';
 import { FindProfileByUserIdFeature } from './features/find-profile-by-user-id.feature';
+import { GetProviderPublicProfileFeature } from './features/get-provider-public-profile.feature';
 import { SupabaseStorageService } from '@supabase/services/supabase-storage.service';
 
 function toResponseProfile(profile: {
@@ -71,6 +75,7 @@ export class ProfilesController {
     private readonly createProfileFeature: CreateProfileFeature,
     private readonly updateProfileFeature: UpdateProfileFeature,
     private readonly findProfileByUserIdFeature: FindProfileByUserIdFeature,
+    private readonly getProviderPublicProfileFeature: GetProviderPublicProfileFeature,
     private readonly supabaseStorage: SupabaseStorageService,
   ) {}
 
@@ -138,6 +143,35 @@ export class ProfilesController {
     );
 
     return toResponseProfile(profile);
+  }
+
+  @Get(':userId/public')
+  @UseAuth()
+  @ApiOperation({
+    summary:
+      'Get the public profile of a provider with overall rating and paginated services',
+  })
+  @ApiParam({
+    name: 'userId',
+    description: 'Provider user ID',
+    example: 'auth0|123456789',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Provider public profile',
+    type: ProviderPublicProfileResponseDto,
+  })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 404, description: 'Profile not found' })
+  async getPublicProfile(
+    @Param('userId') userId: string,
+    @Query() query: PaginateQueryDto,
+  ): Promise<ProviderPublicProfileResponseDto> {
+    return this.getProviderPublicProfileFeature.execute(
+      userId,
+      query.page ?? 1,
+      query.limit ?? 10,
+    );
   }
 
   @Get(':userId')

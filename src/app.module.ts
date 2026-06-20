@@ -8,11 +8,11 @@ import { ProfilesModule } from '@modules/profiles/profiles.module';
 import { SupabaseModule } from '@supabase/supabase.module';
 import { ServicesModule } from '@modules/services/services.module';
 import { SeederModule } from './seeder/seeder.module';
-import { ServiceRequestsModule } from '@modules/service-requests/service-requests.module';
 import { NotificationsModule } from '@modules/notifications/notifications.module';
 import { EventEmitterModule } from '@nestjs/event-emitter';
 import { DevicesModule } from './modules/devices/devices.module';
 import { RatingsModule } from '@modules/ratings/ratings.module';
+import { FavoritesModule } from '@modules/favorites/favorites.module';
 
 @Module({
   imports: [
@@ -29,11 +29,11 @@ import { RatingsModule } from '@modules/ratings/ratings.module';
     SupabaseModule,
     ServicesModule,
     SeederModule,
-    ServiceRequestsModule,
     NotificationsModule,
     EventEmitterModule.forRoot({}),
     DevicesModule,
     RatingsModule,
+    FavoritesModule,
   ],
 })
 export class AppModule {}
