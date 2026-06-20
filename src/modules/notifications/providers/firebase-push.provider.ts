@@ -28,12 +28,14 @@ export class FirebasePushProvider implements OnModuleInit {
     tokens: string[],
     title: string,
     body: string,
+    data?: Record<string, string>,
   ): Promise<void> {
     if (!tokens.length) return;
 
     await admin.messaging().sendEachForMulticast({
       tokens,
       notification: { title, body },
+      ...(data && { data }),
     });
   }
 }

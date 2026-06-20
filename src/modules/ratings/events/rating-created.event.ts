@@ -5,5 +5,6 @@ export class RatingCreated {
     public readonly providerName: string,
     public readonly serviceTitle: string,
     public readonly score: number,
+    public readonly serviceId: string,
   ) {}
 }
