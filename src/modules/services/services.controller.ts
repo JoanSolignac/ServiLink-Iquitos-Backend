@@ -80,6 +80,7 @@ function toResponseServiceWithProfile(
     providerName:
       `${service.user.profile!.firstName} ${service.user.profile!.lastName}`.trim(),
     providerPictureUrl: service.user.profile?.profilePictureUrl ?? '',
+    providerPhone: service.user.profile?.phone ?? null,
     averageRating: service.averageRating,
   };
 }

@@ -32,6 +32,9 @@ export class ServiceWithProfileResponseDto {
   @ApiPropertyOptional({ example: 'https://example.com/photo.jpg' })
   declare providerPictureUrl?: string;
 
+  @ApiPropertyOptional({ example: '+51987654321', nullable: true })
+  declare providerPhone: string | null;
+
   @ApiProperty({ example: 4.5, minimum: 0, maximum: 5 })
   declare averageRating: number;
 
