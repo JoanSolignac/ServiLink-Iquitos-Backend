@@ -8,6 +8,7 @@ import {
   Min,
 } from 'class-validator';
 import { ApiPropertyOptional } from '@nestjs/swagger';
+import { Transform } from 'class-transformer';
 
 export class UpdateServiceRequestDto {
   @ApiPropertyOptional({
@@ -59,4 +60,24 @@ export class UpdateServiceRequestDto {
   @IsString({ each: true })
   @IsOptional()
   declare keywords?: string[];
+
+  @ApiPropertyOptional({
+    description:
+      'Existing image URLs to keep. URLs not included here will be deleted from storage. Omit this field entirely to keep all existing images unchanged.',
+    type: [String],
+    example: ['https://example.com/services/img1.jpg'],
+  })
+  @IsArray()
+  @IsString({ each: true })
+  @IsOptional()
+  @Transform(({ value }) => (typeof value === 'string' ? [value] : value))
+  declare keepImageUrls?: string[];
+
+  @ApiPropertyOptional({
+    description:
+      'New images to add (up to 5 total including kept ones, each max 6 MB). jpg, jpeg, png or webp.',
+    type: 'array',
+    items: { type: 'string', format: 'binary' },
+  })
+  declare images?: Express.Multer.File[];
 }

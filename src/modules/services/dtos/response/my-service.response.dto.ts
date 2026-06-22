@@ -22,4 +22,7 @@ export class MyServiceResponseDto {
 
   @ApiProperty({ enum: ServiceStatus, example: ServiceStatus.REQUIRE_REVIEW })
   declare status: ServiceStatus;
+
+  @ApiProperty({ example: ['https://example.com/img1.jpg'], type: [String] })
+  declare imageUrls: string[];
 }

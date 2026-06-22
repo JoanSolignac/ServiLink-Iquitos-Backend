@@ -31,6 +31,9 @@ export class ServiceWithProfileResponseDto {
 
   @ApiProperty({ example: 4.5, minimum: 0, maximum: 5 })
   declare averageRating: number;
+
+  @ApiProperty({ example: ['https://example.com/img1.jpg'], type: [String] })
+  declare imageUrls: string[];
 }
 
 export class ServiceRatingResponseDto {

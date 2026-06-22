@@ -6,4 +6,6 @@ export type UpdateServiceInput = {
   price?: number | null;
   pricingUnit?: string;
   keywords?: string[];
+  keepImageUrls?: string[];
+  newImageUrls?: string[];
 };

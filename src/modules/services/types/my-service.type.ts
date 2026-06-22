@@ -5,6 +5,7 @@ export const MY_SERVICE_SELECT = {
   title: true,
   description: true,
   keywords: true,
+  imageUrls: true,
   price: true,
   pricingUnit: true,
   status: true,
