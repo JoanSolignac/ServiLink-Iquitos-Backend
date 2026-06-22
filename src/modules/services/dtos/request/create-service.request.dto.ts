@@ -8,7 +8,7 @@ import {
   Min,
 } from 'class-validator';
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import { Transform } from 'class-transformer';
+import { Transform, Type } from 'class-transformer';
 
 export class CreateServiceBodyDto {
   @ApiPropertyOptional({
@@ -34,6 +34,7 @@ export class CreateServiceBodyDto {
     nullable: true,
     example: 50.0,
   })
+  @Type(() => Number)
   @IsNumber()
   @Min(0)
   @IsOptional()
