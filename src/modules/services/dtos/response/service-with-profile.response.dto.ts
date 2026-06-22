@@ -37,6 +37,9 @@ export class ServiceWithProfileResponseDto {
 }
 
 export class ServiceRatingResponseDto {
+  @ApiProperty({ example: 'user-uuid-1234' })
+  declare customerId: string;
+
   @ApiProperty({ example: 'Juan Pérez' })
   declare customerName: string;
 

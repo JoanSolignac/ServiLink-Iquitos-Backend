@@ -39,6 +39,7 @@ export const SERVICE_DETAIL_SELECT = {
       createdAt: true,
       customer: {
         select: {
+          id: true,
           profile: {
             select: {
               firstName: true,
