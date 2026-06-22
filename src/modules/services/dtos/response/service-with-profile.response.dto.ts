@@ -23,6 +23,9 @@ export class ServiceWithProfileResponseDto {
   @ApiProperty({ enum: ServiceStatus, example: ServiceStatus.APPROVED })
   declare status: ServiceStatus;
 
+  @ApiProperty({ example: 'user-uuid-1234' })
+  declare providerId: string;
+
   @ApiProperty({ example: 'Juan Pérez' })
   declare providerName: string;
 
@@ -37,9 +40,6 @@ export class ServiceWithProfileResponseDto {
 }
 
 export class ServiceRatingResponseDto {
-  @ApiProperty({ example: 'user-uuid-1234' })
-  declare customerId: string;
-
   @ApiProperty({ example: 'Juan Pérez' })
   declare customerName: string;
 
