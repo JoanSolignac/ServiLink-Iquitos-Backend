@@ -50,6 +50,7 @@ function toResponseProfile(profile: {
   address: string | null;
   createdAt: Date;
   updatedAt: Date;
+  overallRating: number;
 }): ProfileResponseDto {
   return {
     userId: profile.userId,
@@ -62,6 +63,7 @@ function toResponseProfile(profile: {
     address: profile.address,
     createdAt: profile.createdAt,
     updatedAt: profile.updatedAt,
+    overallRating: profile.overallRating,
   };
 }
 
@@ -129,7 +131,7 @@ export class ProfilesController {
       profilePictureUrl,
     });
 
-    return toResponseProfile(profile);
+    return toResponseProfile({ ...profile, overallRating: 0 });
   }
 
   @Get('check-phone')
@@ -273,6 +275,6 @@ export class ProfilesController {
       profilePictureUrl,
     });
 
-    return toResponseProfile(profile);
+    return toResponseProfile({ ...profile, overallRating: 0 });
   }
 }

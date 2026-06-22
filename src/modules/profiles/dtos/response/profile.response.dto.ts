@@ -56,4 +56,10 @@ export class ProfileResponseDto {
     example: '2025-05-31T12:30:00.000Z',
   })
   declare updatedAt: Date;
+
+  @ApiProperty({
+    description: 'Overall rating (average across all services)',
+    example: 4.5,
+  })
+  declare overallRating: number;
 }
