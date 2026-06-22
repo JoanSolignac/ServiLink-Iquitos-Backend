@@ -6,6 +6,8 @@ import {
   Param,
   Body,
   Query,
+  HttpCode,
+  HttpStatus,
   UseInterceptors,
   UploadedFile,
 } from '@nestjs/common';
@@ -32,6 +34,9 @@ import { CreateProfileFeature } from './features/create-profile.feature';
 import { UpdateProfileFeature } from './features/update-profile.feature';
 import { FindProfileByUserIdFeature } from './features/find-profile-by-user-id.feature';
 import { GetProviderPublicProfileFeature } from './features/get-provider-public-profile.feature';
+import { CheckPhoneExistsFeature } from './features/check-phone-exists.feature';
+import { CheckPhoneQueryDto } from './dtos/request/check-phone.query.dto';
+import { CheckExistsResponseDto } from './dtos/response/check-exists.response.dto';
 import { SupabaseStorageService } from '@supabase/services/supabase-storage.service';
 
 function toResponseProfile(profile: {
@@ -76,6 +81,7 @@ export class ProfilesController {
     private readonly updateProfileFeature: UpdateProfileFeature,
     private readonly findProfileByUserIdFeature: FindProfileByUserIdFeature,
     private readonly getProviderPublicProfileFeature: GetProviderPublicProfileFeature,
+    private readonly checkPhoneExistsFeature: CheckPhoneExistsFeature,
     private readonly supabaseStorage: SupabaseStorageService,
   ) {}
 
@@ -124,6 +130,19 @@ export class ProfilesController {
     });
 
     return toResponseProfile(profile);
+  }
+
+  @Get('check-phone')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'Verificar si un número de teléfono ya está registrado',
+  })
+  @ApiResponse({ status: 200, type: CheckExistsResponseDto })
+  async checkPhone(
+    @Query() query: CheckPhoneQueryDto,
+  ): Promise<CheckExistsResponseDto> {
+    const exists = await this.checkPhoneExistsFeature.execute(query.phone);
+    return { exists };
   }
 
   @Get('me')

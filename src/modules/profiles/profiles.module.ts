@@ -6,6 +6,7 @@ import { FindProfileByUserIdFeature } from './features/find-profile-by-user-id.f
 import { CreateProfileFeature } from './features/create-profile.feature';
 import { UpdateProfileFeature } from './features/update-profile.feature';
 import { GetProviderPublicProfileFeature } from './features/get-provider-public-profile.feature';
+import { CheckPhoneExistsFeature } from './features/check-phone-exists.feature';
 
 @Module({
   imports: [PrismaModule, SupabaseModule],
@@ -15,6 +16,7 @@ import { GetProviderPublicProfileFeature } from './features/get-provider-public-
     CreateProfileFeature,
     UpdateProfileFeature,
     GetProviderPublicProfileFeature,
+    CheckPhoneExistsFeature,
   ],
   exports: [FindProfileByUserIdFeature],
 })

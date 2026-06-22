@@ -12,6 +12,7 @@ const FAVORITE_SERVICE_SELECT = {
       title: true,
       description: true,
       keywords: true,
+      imageUrls: true,
       price: true,
       pricingUnit: true,
       status: true,
@@ -21,6 +22,7 @@ const FAVORITE_SERVICE_SELECT = {
           profile: {
             select: {
               firstName: true,
+              lastName: true,
               profilePictureUrl: true,
             },
           },
@@ -60,10 +62,13 @@ export class ListMyFavoritesFeature {
       price: f.service.price != null ? f.service.price.toNumber() : null,
       pricingUnit: f.service.pricingUnit ?? null,
       status: f.service.status,
-      providerName: f.service.user.profile?.firstName ?? '',
+      providerName: f.service.user.profile
+        ? `${f.service.user.profile.firstName} ${f.service.user.profile.lastName}`.trim()
+        : '',
       providerPictureUrl:
         f.service.user.profile?.profilePictureUrl ?? undefined,
       averageRating: f.service.averageRating,
+      imageUrls: f.service.imageUrls,
     }));
 
     return { data, meta: { page, limit, total } };

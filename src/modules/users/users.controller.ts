@@ -21,10 +21,13 @@ import { UserRole } from '@prisma/client';
 import { UseAuth } from '@common/decorators/use-auth.decorator';
 import { ListUsersFeature } from './features/list-users.feature';
 import { ChangeUserRoleFeature } from './features/change-user-role.feature';
+import { CheckEmailExistsFeature } from './features/check-email-exists.feature';
 import { ListUsersQueryDto } from './dtos/request/list-users.query.dto';
 import { ChangeUserRoleRequestDto } from './dtos/request/change-user-role.request.dto';
+import { CheckEmailQueryDto } from './dtos/request/check-email.query.dto';
 import { UserWithProfileResponseDto } from './dtos/response/user-with-profile.response.dto';
 import { UserWithProfilePaginatedResponseDto } from './dtos/response/user-with-profile-paginated.response.dto';
+import { CheckExistsResponseDto } from './dtos/response/check-exists.response.dto';
 import { UserWithProfile } from './types/user-with-profile.type';
 
 function toUserWithProfileResponse(
@@ -51,7 +54,19 @@ export class UsersController {
   constructor(
     private readonly listUsersFeature: ListUsersFeature,
     private readonly changeUserRoleFeature: ChangeUserRoleFeature,
+    private readonly checkEmailExistsFeature: CheckEmailExistsFeature,
   ) {}
+
+  @Get('check-email')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Verificar si un email ya está registrado' })
+  @ApiResponse({ status: 200, type: CheckExistsResponseDto })
+  async checkEmail(
+    @Query() query: CheckEmailQueryDto,
+  ): Promise<CheckExistsResponseDto> {
+    const exists = await this.checkEmailExistsFeature.execute(query.email);
+    return { exists };
+  }
 
   @Get()
   @UseAuth(UserRole.ADMINISTRATOR)

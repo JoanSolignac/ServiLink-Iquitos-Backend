@@ -34,4 +34,7 @@ export class FavoriteServiceResponseDto {
 
   @ApiProperty({ example: 4.5 })
   declare averageRating: number;
+
+  @ApiProperty({ example: ['https://example.com/img1.jpg'], type: [String] })
+  declare imageUrls: string[];
 }
