@@ -76,6 +76,7 @@ export class Auth0Strategy extends PassportStrategy(Strategy, 'auth0') {
       email: user.email,
       hasProfile,
       emailVerified,
+      isPremium: user.isPremium,
       authProviderId: payload.sub,
     };
   }

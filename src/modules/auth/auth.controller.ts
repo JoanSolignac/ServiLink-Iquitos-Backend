@@ -36,6 +36,7 @@ export class AuthController {
       email: authCurrentUser.email,
       hasProfile: authCurrentUser.hasProfile,
       emailVerified: authCurrentUser.emailVerified,
+      isPremium: authCurrentUser.isPremium,
     };
   }
 

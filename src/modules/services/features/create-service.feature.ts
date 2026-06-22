@@ -31,7 +31,9 @@ export class CreateServiceFeature {
       imageUrls,
     });
 
-    console.log('CreateServiceFeature.execute: Inserting service in database...');
+    console.log(
+      'CreateServiceFeature.execute: Inserting service in database...',
+    );
     const service = await this.prisma.service.create({
       data: {
         userId,
@@ -58,12 +60,17 @@ export class CreateServiceFeature {
 
     const event = new ServiceCreatedEvent(userName, user.email, service.title);
 
-    console.log('CreateServiceFeature.execute: Emitting ServiceCreatedEvent...', {
-      userName,
-      email: user.email,
-      title: service.title,
-    });
+    console.log(
+      'CreateServiceFeature.execute: Emitting ServiceCreatedEvent...',
+      {
+        userName,
+        email: user.email,
+        title: service.title,
+      },
+    );
     await this.eventEmitter2.emitAsync(ServiceCreatedEvent.name, event);
-    console.log('CreateServiceFeature.execute: Event emitted and execution finished');
+    console.log(
+      'CreateServiceFeature.execute: Event emitted and execution finished',
+    );
   }
 }

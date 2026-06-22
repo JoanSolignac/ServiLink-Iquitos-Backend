@@ -41,6 +41,11 @@ export class DomainExceptionFilter implements ExceptionFilter {
     [DomainErrorCode.FAVORITE_ALREADY_EXISTS]: HttpStatus.CONFLICT,
     [DomainErrorCode.FAVORITE_NOT_FOUND]: HttpStatus.NOT_FOUND,
     [DomainErrorCode.FAVORITE_NOT_ALLOWED]: HttpStatus.FORBIDDEN,
+
+    [DomainErrorCode.STRIPE_NO_ACTIVE_PRICE]: HttpStatus.BAD_GATEWAY,
+    [DomainErrorCode.STRIPE_NO_CUSTOMER]: HttpStatus.BAD_REQUEST,
+    [DomainErrorCode.STRIPE_SESSION_FAILED]: HttpStatus.BAD_GATEWAY,
+    [DomainErrorCode.SUBSCRIPTION_ALREADY_ACTIVE]: HttpStatus.CONFLICT,
   };
 
   catch(exception: DomainException, host: ArgumentsHost) {

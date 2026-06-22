@@ -6,6 +6,7 @@ export interface AuthCurrentUser {
   email: string;
   hasProfile: boolean;
   emailVerified: boolean;
+  isPremium: boolean;
   // Identificador completo del usuario en Auth0 (sub del JWT), ej. "auth0|abc123"
   authProviderId: string;
 }

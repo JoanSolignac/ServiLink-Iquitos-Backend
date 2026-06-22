@@ -17,6 +17,11 @@ model User {
   role   UserRole
   status UserStatus
 
+  // Subscription status fields
+  isPremium            Boolean @default(false)
+  stripeCustomerId     String? @unique
+  stripeSubscriptionId String? @unique
+
   authIdentities AuthIdentity[]
   devices        Device[]
   profile        Profile?

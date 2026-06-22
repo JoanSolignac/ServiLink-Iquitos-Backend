@@ -8,7 +8,7 @@ import { PrismaExceptionFilter } from './common/filters/prisma-exception.filter'
 import { DomainExceptionFilter } from './common/filters/domain-exception.filter';
 
 async function bootstrap(): Promise<void> {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create(AppModule, { rawBody: true });
 
   const configService = app.get(ConfigService);
 

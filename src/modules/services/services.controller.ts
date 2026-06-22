@@ -167,9 +167,14 @@ export class ServicesController {
         }),
       ),
     );
-    console.log('ServicesController.create: Images uploaded successfully', imageUrls);
+    console.log(
+      'ServicesController.create: Images uploaded successfully',
+      imageUrls,
+    );
 
-    console.log('ServicesController.create: Calling CreateServiceFeature.execute...');
+    console.log(
+      'ServicesController.create: Calling CreateServiceFeature.execute...',
+    );
     await this.createServiceFeature.execute(
       authCurrentUser.id,
       dto.title,
@@ -179,7 +184,9 @@ export class ServicesController {
       dto.pricingUnit,
       imageUrls,
     );
-    console.log('ServicesController.create: Create service completed successfully');
+    console.log(
+      'ServicesController.create: Create service completed successfully',
+    );
   }
 
   @Patch(':id')
@@ -229,12 +236,17 @@ export class ServicesController {
           }),
         ),
       );
-      console.log('ServicesController.update: New images uploaded successfully', newImageUrls);
+      console.log(
+        'ServicesController.update: New images uploaded successfully',
+        newImageUrls,
+      );
     } else {
       newImageUrls = undefined;
     }
 
-    console.log('ServicesController.update: Calling UpdateServiceFeature.execute...');
+    console.log(
+      'ServicesController.update: Calling UpdateServiceFeature.execute...',
+    );
     const { urlsToDelete } = await this.updateServiceFeature.execute({
       serviceId: id,
       requestingUserId: authCurrentUser.id,
@@ -246,16 +258,24 @@ export class ServicesController {
       keepImageUrls: dto.keepImageUrls,
       newImageUrls,
     });
-    console.log('ServicesController.update: UpdateServiceFeature.execute finished', { urlsToDelete });
+    console.log(
+      'ServicesController.update: UpdateServiceFeature.execute finished',
+      { urlsToDelete },
+    );
 
     if (urlsToDelete.length > 0) {
-      console.log('ServicesController.update: Deleting old images from storage...', urlsToDelete);
+      console.log(
+        'ServicesController.update: Deleting old images from storage...',
+        urlsToDelete,
+      );
       await Promise.allSettled(
         urlsToDelete.map((url) => this.supabaseStorage.delete(url)),
       );
       console.log('ServicesController.update: Old images deleted from storage');
     }
-    console.log('ServicesController.update: Update service completed successfully');
+    console.log(
+      'ServicesController.update: Update service completed successfully',
+    );
   }
 
   @Get()
