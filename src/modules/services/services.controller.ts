@@ -150,6 +150,13 @@ export class ServicesController {
     @UploadedFiles(ServiceImagesValidationPipe)
     imageFiles: ValidatedImageFile[],
   ): Promise<void> {
+    console.log('ServicesController.create: Request received', {
+      userId: authCurrentUser.id,
+      dto,
+      filesCount: imageFiles?.length,
+    });
+
+    console.log('ServicesController.create: Uploading images...');
     const imageUrls = await Promise.all(
       imageFiles.map((f) =>
         this.supabaseStorage.upload({
@@ -160,7 +167,9 @@ export class ServicesController {
         }),
       ),
     );
+    console.log('ServicesController.create: Images uploaded successfully', imageUrls);
 
+    console.log('ServicesController.create: Calling CreateServiceFeature.execute...');
     await this.createServiceFeature.execute(
       authCurrentUser.id,
       dto.title,
@@ -170,6 +179,7 @@ export class ServicesController {
       dto.pricingUnit,
       imageUrls,
     );
+    console.log('ServicesController.create: Create service completed successfully');
   }
 
   @Patch(':id')
@@ -199,20 +209,32 @@ export class ServicesController {
     @UploadedFiles(ServiceImagesValidationPipe)
     imageFiles: ValidatedImageFile[],
   ): Promise<void> {
-    const newImageUrls =
-      imageFiles.length > 0
-        ? await Promise.all(
-            imageFiles.map((f) =>
-              this.supabaseStorage.upload({
-                file: f.buffer,
-                fileName: generateFileName(f.originalname),
-                contentType: f.mimetype,
-                folder: 'services',
-              }),
-            ),
-          )
-        : undefined;
+    console.log('ServicesController.update: Request received', {
+      serviceId: id,
+      userId: authCurrentUser.id,
+      dto,
+      filesCount: imageFiles?.length,
+    });
 
+    let newImageUrls: string[] | undefined;
+    if (imageFiles.length > 0) {
+      console.log('ServicesController.update: Uploading new images...');
+      newImageUrls = await Promise.all(
+        imageFiles.map((f) =>
+          this.supabaseStorage.upload({
+            file: f.buffer,
+            fileName: generateFileName(f.originalname),
+            contentType: f.mimetype,
+            folder: 'services',
+          }),
+        ),
+      );
+      console.log('ServicesController.update: New images uploaded successfully', newImageUrls);
+    } else {
+      newImageUrls = undefined;
+    }
+
+    console.log('ServicesController.update: Calling UpdateServiceFeature.execute...');
     const { urlsToDelete } = await this.updateServiceFeature.execute({
       serviceId: id,
       requestingUserId: authCurrentUser.id,
@@ -224,12 +246,16 @@ export class ServicesController {
       keepImageUrls: dto.keepImageUrls,
       newImageUrls,
     });
+    console.log('ServicesController.update: UpdateServiceFeature.execute finished', { urlsToDelete });
 
     if (urlsToDelete.length > 0) {
+      console.log('ServicesController.update: Deleting old images from storage...', urlsToDelete);
       await Promise.allSettled(
         urlsToDelete.map((url) => this.supabaseStorage.delete(url)),
       );
+      console.log('ServicesController.update: Old images deleted from storage');
     }
+    console.log('ServicesController.update: Update service completed successfully');
   }
 
   @Get()

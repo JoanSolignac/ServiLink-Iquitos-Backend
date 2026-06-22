@@ -14,16 +14,24 @@ export class UpdateServiceFeature {
   async execute(
     input: UpdateServiceInput,
   ): Promise<{ urlsToDelete: string[] }> {
+    console.log('UpdateServiceFeature.execute: Starting execution', { input });
+
+    console.log('UpdateServiceFeature.execute: Fetching existing service...');
     const existing = await this.prisma.service.findUnique({
       where: { id: input.serviceId },
       select: { userId: true, imageUrls: true },
     });
 
     if (!existing) {
+      console.log('UpdateServiceFeature.execute: Error - Service not found', { serviceId: input.serviceId });
       throw new ServiceNotFoundException();
     }
 
     if (existing.userId !== input.requestingUserId) {
+      console.log('UpdateServiceFeature.execute: Error - User not authorized', {
+        ownerId: existing.userId,
+        requestingUserId: input.requestingUserId,
+      });
       throw new ServiceUnauthorizedException();
     }
 
@@ -38,8 +46,17 @@ export class UpdateServiceFeature {
       const added = input.newImageUrls ?? [];
 
       finalImageUrls = [...kept, ...added];
+      console.log('UpdateServiceFeature.execute: Recalculating images', {
+        kept,
+        added,
+        finalImageUrls,
+      });
 
       if (finalImageUrls.length > MAX_IMAGES) {
+        console.log('UpdateServiceFeature.execute: Error - Too many images', {
+          count: finalImageUrls.length,
+          max: MAX_IMAGES,
+        });
         throw new BadRequestException(
           `A service can have at most ${MAX_IMAGES} images`,
         );
@@ -48,8 +65,10 @@ export class UpdateServiceFeature {
       urlsToDelete = existing.imageUrls.filter(
         (url) => !finalImageUrls.includes(url),
       );
+      console.log('UpdateServiceFeature.execute: Identified image URLs to delete', urlsToDelete);
     }
 
+    console.log('UpdateServiceFeature.execute: Updating service in database...');
     await this.prisma.service.update({
       where: { id: input.serviceId },
       data: {
@@ -62,7 +81,9 @@ export class UpdateServiceFeature {
         status: ServiceStatus.REQUIRE_REVIEW,
       },
     });
+    console.log('UpdateServiceFeature.execute: Service updated successfully in database');
 
+    console.log('UpdateServiceFeature.execute: Execution finished, returning', { urlsToDelete });
     return { urlsToDelete };
   }
 }
