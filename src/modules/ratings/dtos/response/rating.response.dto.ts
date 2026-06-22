@@ -1,4 +1,4 @@
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export class RatingResponseDto {
   @ApiProperty({ example: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890' })
@@ -13,8 +13,8 @@ export class RatingResponseDto {
   @ApiProperty({ example: 4, minimum: 0, maximum: 5 })
   declare score: number;
 
-  @ApiProperty({ example: 'Excellent service, very professional.' })
-  declare comment: string;
+  @ApiPropertyOptional({ example: 'Excellent service, very professional.' })
+  declare comment: string | null;
 
   @ApiProperty({ example: '2024-01-15T10:30:00.000Z' })
   declare createdAt: Date;

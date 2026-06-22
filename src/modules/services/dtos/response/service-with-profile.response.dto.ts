@@ -55,8 +55,8 @@ export class ServiceRatingResponseDto {
   @ApiProperty({ example: 4, minimum: 0, maximum: 5 })
   declare score: number;
 
-  @ApiProperty({ example: 'Buen servicio.' })
-  declare comment: string;
+  @ApiPropertyOptional({ example: 'Buen servicio.', nullable: true })
+  declare comment: string | null;
 
   @ApiProperty({ example: '2024-01-15T10:30:00.000Z' })
   declare createdAt: Date;
