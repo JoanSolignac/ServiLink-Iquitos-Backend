@@ -40,6 +40,9 @@ export class ServiceWithProfileResponseDto {
 
   @ApiProperty({ example: ['https://example.com/img1.jpg'], type: [String] })
   declare imageUrls: string[];
+
+  @ApiProperty({ example: false })
+  declare providerIsPremium: boolean;
 }
 
 export class ServiceRatingResponseDto {

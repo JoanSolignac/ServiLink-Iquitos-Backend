@@ -26,6 +26,7 @@ export class DomainExceptionFilter implements ExceptionFilter {
     [DomainErrorCode.USER_ALREADY_HAS_ROLE]: HttpStatus.CONFLICT,
 
     [DomainErrorCode.SERVICE_UNAUTHORIZED]: HttpStatus.FORBIDDEN,
+    [DomainErrorCode.SERVICE_LIMIT_REACHED]: HttpStatus.FORBIDDEN,
     [DomainErrorCode.USER_SUSPENDED]: HttpStatus.FORBIDDEN,
 
     [DomainErrorCode.INVALID_PROVIDER]: HttpStatus.BAD_REQUEST,

@@ -4,6 +4,7 @@ import { ServiceStatus } from '@prisma/client';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { ServiceCreatedEvent } from '@modules/services/events/service-created.event';
 import { SERVICE_WITH_PROFILE_SELECT } from '@modules/services/types/service-with-profile.type';
+import { ServiceLimitReachedException } from '@modules/services/exceptions/service-limit-reached.exception';
 
 @Injectable()
 export class CreateServiceFeature {
@@ -30,6 +31,20 @@ export class CreateServiceFeature {
       pricingUnit,
       imageUrls,
     });
+
+    const currentUser = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: { isPremium: true },
+    });
+
+    if (!currentUser?.isPremium) {
+      const serviceCount = await this.prisma.service.count({
+        where: { userId },
+      });
+      if (serviceCount >= 2) {
+        throw new ServiceLimitReachedException();
+      }
+    }
 
     console.log(
       'CreateServiceFeature.execute: Inserting service in database...',

@@ -42,16 +42,23 @@ export class ListPublicServicesFeature {
       ];
     }
 
-    const [servicesUserProfile, total] = await this.prisma.$transaction([
+    const [allServices, total] = await this.prisma.$transaction([
       this.prisma.service.findMany({
         where,
-        orderBy: { createdAt: 'desc' },
-        skip,
-        take,
         select: SERVICE_WITH_PROFILE_SELECT,
       }),
       this.prisma.service.count({ where }),
     ]);
+
+    const byRatingDesc = (
+      a: (typeof allServices)[number],
+      b: (typeof allServices)[number],
+    ) => b.averageRating - a.averageRating;
+
+    const servicesUserProfile = [
+      ...allServices.filter((s) => s.user.isPremium).sort(byRatingDesc),
+      ...allServices.filter((s) => !s.user.isPremium).sort(byRatingDesc),
+    ].slice(skip, skip + take);
 
     return { servicesUserProfile, total };
   }

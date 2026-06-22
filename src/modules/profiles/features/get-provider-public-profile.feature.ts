@@ -19,9 +19,13 @@ export class GetProviderPublicProfileFeature {
   ): Promise<ProviderPublicProfileResponseDto> {
     const { skip, take } = resolvePagination(page, limit);
 
-    const profile = await this.prisma.profile.findUnique({
-      where: { userId },
-    });
+    const [profile, user] = await Promise.all([
+      this.prisma.profile.findUnique({ where: { userId } }),
+      this.prisma.user.findUnique({
+        where: { id: userId },
+        select: { isPremium: true },
+      }),
+    ]);
 
     if (!profile) {
       throw new ProfileNotFoundException();
@@ -68,6 +72,7 @@ export class GetProviderPublicProfileFeature {
       phone: profile.phone,
       address: profile.address,
       profilePictureUrl: profile.profilePictureUrl,
+      isPremium: user?.isPremium ?? false,
       overallRating: ratingAgg._avg.score ?? 0,
       services: {
         data: serviceSummaries,
