@@ -15,6 +15,7 @@ const BASE_SERVICE_SELECT = {
     select: {
       id: true,
       email: true,
+      isPremium: true,
       profile: {
         select: {
           firstName: true,

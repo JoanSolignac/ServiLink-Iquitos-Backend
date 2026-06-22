@@ -63,6 +63,9 @@ export class ProviderPublicProfileResponseDto {
   })
   declare profilePictureUrl: string | null;
 
+  @ApiProperty({ example: false })
+  declare isPremium: boolean;
+
   @ApiProperty({ example: 4.2 })
   declare overallRating: number;
 
