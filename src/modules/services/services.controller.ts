@@ -87,6 +87,7 @@ function toResponseServiceDetail(
   service: ServiceDetail,
 ): ServiceDetailResponseDto {
   const ratings: ServiceRatingResponseDto[] = service.ratings.map((r) => ({
+    customerId: r.customer.id,
     customerName:
       `${r.customer.profile?.firstName ?? ''} ${r.customer.profile?.lastName ?? ''}`.trim(),
     customerPictureUrl: r.customer.profile?.profilePictureUrl ?? null,
