@@ -20,6 +20,7 @@ const BASE_SERVICE_SELECT = {
           firstName: true,
           lastName: true,
           profilePictureUrl: true,
+          phone: true,
         },
       },
     },
