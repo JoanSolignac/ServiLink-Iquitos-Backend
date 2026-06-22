@@ -42,6 +42,7 @@ export class GetProviderPublicProfileFeature {
           title: true,
           description: true,
           price: true,
+          pricingUnit: true,
           averageRating: true,
         },
       }),
@@ -54,7 +55,8 @@ export class GetProviderPublicProfileFeature {
       serviceId: s.id,
       title: s.title,
       description: s.description,
-      price: Number(s.price),
+      price: s.price != null ? Number(s.price) : null,
+      pricingUnit: s.pricingUnit ?? null,
       averageRating: s.averageRating,
     }));
 

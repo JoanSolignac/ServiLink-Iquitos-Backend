@@ -3,6 +3,7 @@ export type UpdateServiceInput = {
   requestingUserId: string;
   title?: string;
   description?: string;
-  price?: number;
+  price?: number | null;
+  pricingUnit?: string;
   keywords?: string[];
 };

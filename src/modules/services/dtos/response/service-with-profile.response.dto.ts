@@ -14,8 +14,11 @@ export class ServiceWithProfileResponseDto {
   @ApiProperty({ example: ['plumbing', 'repair'], type: [String] })
   declare keywords: string[];
 
-  @ApiProperty({ example: 45.5 })
-  declare price: number;
+  @ApiProperty({ example: 45.5, nullable: true })
+  declare price: number | null;
+
+  @ApiPropertyOptional({ example: 'por hora', nullable: true })
+  declare pricingUnit: string | null;
 
   @ApiProperty({ enum: ServiceStatus, example: ServiceStatus.APPROVED })
   declare status: ServiceStatus;

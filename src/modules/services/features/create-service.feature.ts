@@ -16,15 +16,17 @@ export class CreateServiceFeature {
     userId: string,
     title: string,
     description: string,
-    price: number,
+    price: number | null | undefined,
     keywords: string[],
+    pricingUnit?: string,
   ): Promise<void> {
     const service = await this.prisma.service.create({
       data: {
         userId,
         title,
         description,
-        price,
+        price: price ?? null,
+        pricingUnit: pricingUnit ?? null,
         keywords,
         status: ServiceStatus.REQUIRE_REVIEW,
       },

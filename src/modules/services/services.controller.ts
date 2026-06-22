@@ -56,7 +56,8 @@ function toResponseServiceWithProfile(
     title: service.title,
     description: service.description,
     keywords: service.keywords,
-    price: service.price.toNumber(),
+    price: service.price != null ? service.price.toNumber() : null,
+    pricingUnit: service.pricingUnit ?? null,
     status: service.status,
     providerName: service.user.profile!.firstName,
     providerPictureUrl: service.user.profile?.profilePictureUrl ?? '',
@@ -88,7 +89,8 @@ function toResponseMyService(myService: MyService): MyServiceResponseDto {
     title: myService.title,
     description: myService.description,
     keywords: myService.keywords,
-    price: myService.price.toNumber(),
+    price: myService.price != null ? myService.price.toNumber() : null,
+    pricingUnit: myService.pricingUnit ?? null,
     status: myService.status,
   };
 }
@@ -128,6 +130,7 @@ export class ServicesController {
       dto.description,
       dto.price,
       dto.keywords ?? [],
+      dto.pricingUnit,
     );
   }
 
@@ -160,6 +163,7 @@ export class ServicesController {
       title: dto.title,
       description: dto.description,
       price: dto.price,
+      pricingUnit: dto.pricingUnit,
       keywords: dto.keywords,
     });
   }

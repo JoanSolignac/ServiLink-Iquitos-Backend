@@ -62,7 +62,7 @@ model Profile {
   birthDate         DateTime
   profilePictureUrl String?
   bio               String?
-  phone             String?
+  phone             String?  @unique
   address           String?
 
   createdAt DateTime @default(now())
@@ -90,7 +90,8 @@ model Service {
   userId        String
   title         String
   description   String
-  price         Decimal
+  price         Decimal?
+  pricingUnit   String?
   status        ServiceStatus
   keywords      String[]
   averageRating Float         @default(0)
