@@ -22,8 +22,10 @@ import { UseAuth } from '@common/decorators/use-auth.decorator';
 import { AddFavoriteFeature } from './features/add-favorite.feature';
 import { RemoveFavoriteFeature } from './features/remove-favorite.feature';
 import { ListMyFavoritesFeature } from './features/list-my-favorites.feature';
+import { CheckFavoriteExistsFeature } from './features/check-favorite-exists.feature';
 import { ListFavoritesQueryDto } from './dtos/request/list-favorites.query.dto';
 import { FavoriteServicePaginatedResponseDto } from './dtos/response/favorite-service-paginated.response.dto';
+import { CheckFavoriteResponseDto } from './dtos/response/check-favorite.response.dto';
 
 @ApiTags('Favorites')
 @ApiBearerAuth('bearer')
@@ -33,6 +35,7 @@ export class FavoritesController {
     private readonly addFavoriteFeature: AddFavoriteFeature,
     private readonly removeFavoriteFeature: RemoveFavoriteFeature,
     private readonly listMyFavoritesFeature: ListMyFavoritesFeature,
+    private readonly checkFavoriteExistsFeature: CheckFavoriteExistsFeature,
   ) {}
 
   @Post('services/:id/favorite')
@@ -75,6 +78,28 @@ export class FavoritesController {
     @Param('id') id: string,
   ): Promise<void> {
     return this.removeFavoriteFeature.execute(id, authCurrentUser.id);
+  }
+
+  @Get('services/:id/favorite')
+  @UseAuth(UserRole.USER)
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Check if a service is in my favorites' })
+  @ApiParam({
+    name: 'id',
+    description: 'Service ID',
+    example: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890',
+  })
+  @ApiResponse({ status: 200, type: CheckFavoriteResponseDto })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  async checkFavorite(
+    @CurrentUser() authCurrentUser: AuthCurrentUser,
+    @Param('id') id: string,
+  ): Promise<CheckFavoriteResponseDto> {
+    const isFavorite = await this.checkFavoriteExistsFeature.execute(
+      id,
+      authCurrentUser.id,
+    );
+    return { isFavorite };
   }
 
   @Get('favorites')
