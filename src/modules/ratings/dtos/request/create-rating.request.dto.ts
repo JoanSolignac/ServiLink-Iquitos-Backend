@@ -1,7 +1,7 @@
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiPropertyOptional, ApiProperty } from '@nestjs/swagger';
 import {
   IsInt,
-  IsNotEmpty,
+  IsOptional,
   IsString,
   Max,
   MaxLength,
@@ -15,9 +15,9 @@ export class CreateRatingRequestDto {
   @Max(5)
   score: number;
 
-  @ApiProperty({ example: 'Excellent service, very professional.' })
+  @ApiPropertyOptional({ example: 'Excellent service, very professional.' })
+  @IsOptional()
   @IsString()
-  @IsNotEmpty()
   @MaxLength(500)
-  comment: string;
+  comment?: string;
 }

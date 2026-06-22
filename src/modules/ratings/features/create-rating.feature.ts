@@ -20,7 +20,7 @@ export class CreateRatingFeature {
     serviceId: string,
     customerId: string,
     score: number,
-    comment: string,
+    comment: string | undefined,
   ): Promise<RatingResult> {
     const service = await this.prisma.service.findUnique({
       where: { id: serviceId },

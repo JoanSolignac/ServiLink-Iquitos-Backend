@@ -124,7 +124,7 @@ model Rating {
   serviceId  String
   customerId String
   score      Int
-  comment    String
+  comment    String?
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
 
