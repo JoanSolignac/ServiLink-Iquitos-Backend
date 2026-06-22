@@ -8,7 +8,10 @@ import {
   Param,
   Body,
   Query,
+  UseInterceptors,
+  UploadedFiles,
 } from '@nestjs/common';
+import { FilesInterceptor } from '@nestjs/platform-express';
 import {
   ApiTags,
   ApiBearerAuth,
@@ -16,6 +19,7 @@ import {
   ApiResponse,
   ApiParam,
   ApiBody,
+  ApiConsumes,
 } from '@nestjs/swagger';
 import { CurrentUser } from '@common/decorators/current-user.decorator';
 import type { AuthCurrentUser } from '@common/interfaces/auth-current-user.interface';
@@ -47,6 +51,18 @@ import {
 import { MyService } from '@modules/services/types/my-service.type';
 import { MyServiceResponseDto } from '@modules/services/dtos/response/my-service.response.dto';
 import { MyServicePaginatedResponseDto } from '@modules/services/dtos/response/my-service-paginated.response.dto';
+import {
+  ServiceImagesValidationPipe,
+  ValidatedImageFile,
+} from '@common/pipes/service-images-validation.pipe';
+import { SupabaseStorageService } from '@supabase/services/supabase-storage.service';
+
+function generateFileName(originalName: string): string {
+  const ext = originalName.split('.').pop() || 'jpg';
+  const date = new Date().toISOString().split('T')[0];
+  const id = crypto.randomUUID();
+  return `${date}-${id}.${ext}`;
+}
 
 function toResponseServiceWithProfile(
   service: ServiceWithProfile,
@@ -56,10 +72,12 @@ function toResponseServiceWithProfile(
     title: service.title,
     description: service.description,
     keywords: service.keywords,
+    imageUrls: service.imageUrls,
     price: service.price != null ? service.price.toNumber() : null,
     pricingUnit: service.pricingUnit ?? null,
     status: service.status,
-    providerName: service.user.profile!.firstName,
+    providerName:
+      `${service.user.profile!.firstName} ${service.user.profile!.lastName}`.trim(),
     providerPictureUrl: service.user.profile?.profilePictureUrl ?? '',
     averageRating: service.averageRating,
   };
@@ -89,6 +107,7 @@ function toResponseMyService(myService: MyService): MyServiceResponseDto {
     title: myService.title,
     description: myService.description,
     keywords: myService.keywords,
+    imageUrls: myService.imageUrls,
     price: myService.price != null ? myService.price.toNumber() : null,
     pricingUnit: myService.pricingUnit ?? null,
     status: myService.status,
@@ -108,10 +127,12 @@ export class ServicesController {
     private readonly listPublicServicesFeature: ListPublicServicesFeature,
     private readonly listMyServicesFeature: ListMyServicesFeature,
     private readonly listAdminServicesFeature: ListAdminServicesFeature,
+    private readonly supabaseStorage: SupabaseStorageService,
   ) {}
 
   @Post()
   @UseAuth()
+  @ApiConsumes('multipart/form-data')
   @ApiOperation({ summary: 'Create a new service' })
   @ApiBody({ type: CreateServiceBodyDto })
   @ApiResponse({
@@ -120,10 +141,24 @@ export class ServicesController {
       'Service created successfully. Status defaults to REQUIRE_REVIEW.',
   })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @UseInterceptors(FilesInterceptor('images', 5))
   async create(
     @CurrentUser() authCurrentUser: AuthCurrentUser,
     @Body() dto: CreateServiceBodyDto,
+    @UploadedFiles(ServiceImagesValidationPipe)
+    imageFiles: ValidatedImageFile[],
   ): Promise<void> {
+    const imageUrls = await Promise.all(
+      imageFiles.map((f) =>
+        this.supabaseStorage.upload({
+          file: f.buffer,
+          fileName: generateFileName(f.originalname),
+          contentType: f.mimetype,
+          folder: 'services',
+        }),
+      ),
+    );
+
     await this.createServiceFeature.execute(
       authCurrentUser.id,
       dto.title,
@@ -131,12 +166,14 @@ export class ServicesController {
       dto.price,
       dto.keywords ?? [],
       dto.pricingUnit,
+      imageUrls,
     );
   }
 
   @Patch(':id')
   @UseAuth()
   @HttpCode(HttpStatus.NO_CONTENT)
+  @ApiConsumes('multipart/form-data')
   @ApiOperation({ summary: 'Update an existing service' })
   @ApiParam({
     name: 'id',
@@ -152,12 +189,29 @@ export class ServicesController {
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @ApiResponse({ status: 403, description: 'Forbidden - not the owner' })
   @ApiResponse({ status: 404, description: 'Service not found' })
+  @UseInterceptors(FilesInterceptor('images', 5))
   async update(
     @CurrentUser() authCurrentUser: AuthCurrentUser,
     @Param('id') id: string,
     @Body() dto: UpdateServiceRequestDto,
+    @UploadedFiles(ServiceImagesValidationPipe)
+    imageFiles: ValidatedImageFile[],
   ): Promise<void> {
-    await this.updateServiceFeature.execute({
+    const newImageUrls =
+      imageFiles.length > 0
+        ? await Promise.all(
+            imageFiles.map((f) =>
+              this.supabaseStorage.upload({
+                file: f.buffer,
+                fileName: generateFileName(f.originalname),
+                contentType: f.mimetype,
+                folder: 'services',
+              }),
+            ),
+          )
+        : undefined;
+
+    const { urlsToDelete } = await this.updateServiceFeature.execute({
       serviceId: id,
       requestingUserId: authCurrentUser.id,
       title: dto.title,
@@ -165,7 +219,15 @@ export class ServicesController {
       price: dto.price,
       pricingUnit: dto.pricingUnit,
       keywords: dto.keywords,
+      keepImageUrls: dto.keepImageUrls,
+      newImageUrls,
     });
+
+    if (urlsToDelete.length > 0) {
+      await Promise.allSettled(
+        urlsToDelete.map((url) => this.supabaseStorage.delete(url)),
+      );
+    }
   }
 
   @Get()

@@ -8,6 +8,7 @@ import {
   Min,
 } from 'class-validator';
 import { ApiPropertyOptional } from '@nestjs/swagger';
+import { Transform } from 'class-transformer';
 
 export class CreateServiceBodyDto {
   @ApiPropertyOptional({
@@ -57,5 +58,14 @@ export class CreateServiceBodyDto {
   @IsArray()
   @IsString({ each: true })
   @IsOptional()
+  @Transform(({ value }) => (typeof value === 'string' ? [value] : value))
   declare keywords?: string[];
+
+  @ApiPropertyOptional({
+    description:
+      'Service images (up to 5, each max 6 MB). jpg, jpeg, png or webp.',
+    type: 'array',
+    items: { type: 'string', format: 'binary' },
+  })
+  declare images?: Express.Multer.File[];
 }

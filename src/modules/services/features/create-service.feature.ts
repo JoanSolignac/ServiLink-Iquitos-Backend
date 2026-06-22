@@ -19,6 +19,7 @@ export class CreateServiceFeature {
     price: number | null | undefined,
     keywords: string[],
     pricingUnit?: string,
+    imageUrls: string[] = [],
   ): Promise<void> {
     const service = await this.prisma.service.create({
       data: {
@@ -28,6 +29,7 @@ export class CreateServiceFeature {
         price: price ?? null,
         pricingUnit: pricingUnit ?? null,
         keywords,
+        imageUrls,
         status: ServiceStatus.REQUIRE_REVIEW,
       },
       select: SERVICE_WITH_PROFILE_SELECT,

@@ -94,6 +94,7 @@ model Service {
   pricingUnit   String?
   status        ServiceStatus
   keywords      String[]
+  imageUrls     String[]      @default([])
   averageRating Float         @default(0)
 
   createdAt DateTime @default(now())
