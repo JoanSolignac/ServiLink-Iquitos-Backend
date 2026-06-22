@@ -1,4 +1,4 @@
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { ServiceStatus } from '@prisma/client';
 
 export class MyServiceResponseDto {
@@ -14,8 +14,11 @@ export class MyServiceResponseDto {
   @ApiProperty({ example: ['plumbing', 'repair'], type: [String] })
   declare keywords: string[];
 
-  @ApiProperty({ example: 45.5 })
-  declare price: number;
+  @ApiProperty({ example: 45.5, nullable: true })
+  declare price: number | null;
+
+  @ApiPropertyOptional({ example: 'por hora', nullable: true })
+  declare pricingUnit: string | null;
 
   @ApiProperty({ enum: ServiceStatus, example: ServiceStatus.REQUIRE_REVIEW })
   declare status: ServiceStatus;

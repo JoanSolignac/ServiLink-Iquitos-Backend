@@ -4,12 +4,13 @@ import {
   IsNumber,
   IsArray,
   IsOptional,
+  MaxLength,
   Min,
 } from 'class-validator';
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { ApiPropertyOptional } from '@nestjs/swagger';
 
 export class CreateServiceBodyDto {
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: 'Title of the service',
     example: 'House Cleaning',
   })
@@ -17,7 +18,7 @@ export class CreateServiceBodyDto {
   @IsNotEmpty()
   declare title: string;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: 'Detailed description of the service',
     example: 'Professional house cleaning service in Iquitos',
   })
@@ -25,14 +26,28 @@ export class CreateServiceBodyDto {
   @IsNotEmpty()
   declare description: string;
 
-  @ApiProperty({
-    description: 'Price of the service',
+  @ApiPropertyOptional({
+    description:
+      'Price of the service. Omit or send null for negotiable price.',
     minimum: 0,
+    nullable: true,
     example: 50.0,
   })
   @IsNumber()
   @Min(0)
-  declare price: number;
+  @IsOptional()
+  declare price?: number | null;
+
+  @ApiPropertyOptional({
+    description: 'Unit of pricing (e.g. "por hora", "m²", "sesión")',
+    example: 'por hora',
+    maxLength: 50,
+  })
+  @IsString()
+  @IsNotEmpty()
+  @MaxLength(50)
+  @IsOptional()
+  declare pricingUnit?: string;
 
   @ApiPropertyOptional({
     description: 'Keywords associated with the service',

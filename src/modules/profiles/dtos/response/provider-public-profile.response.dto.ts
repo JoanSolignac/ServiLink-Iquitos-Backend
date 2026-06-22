@@ -10,8 +10,11 @@ export class ServiceSummaryResponseDto {
   @ApiProperty({ example: 'Reparación de tuberías y desagües.' })
   declare description: string;
 
-  @ApiProperty({ example: 50.0 })
-  declare price: number;
+  @ApiProperty({ example: 50.0, nullable: true })
+  declare price: number | null;
+
+  @ApiProperty({ example: 'por hora', nullable: true })
+  declare pricingUnit: string | null;
 
   @ApiProperty({ example: 4.5 })
   declare averageRating: number;

@@ -13,6 +13,7 @@ const FAVORITE_SERVICE_SELECT = {
       description: true,
       keywords: true,
       price: true,
+      pricingUnit: true,
       status: true,
       averageRating: true,
       user: {
@@ -56,7 +57,8 @@ export class ListMyFavoritesFeature {
       title: f.service.title,
       description: f.service.description,
       keywords: f.service.keywords,
-      price: f.service.price.toNumber(),
+      price: f.service.price != null ? f.service.price.toNumber() : null,
+      pricingUnit: f.service.pricingUnit ?? null,
       status: f.service.status,
       providerName: f.service.user.profile?.firstName ?? '',
       providerPictureUrl:

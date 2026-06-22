@@ -6,6 +6,7 @@ export const MY_SERVICE_SELECT = {
   description: true,
   keywords: true,
   price: true,
+  pricingUnit: true,
   status: true,
   createdAt: true,
 } satisfies Prisma.ServiceSelect;

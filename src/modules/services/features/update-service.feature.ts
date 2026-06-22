@@ -28,6 +28,7 @@ export class UpdateServiceFeature {
         title: input.title,
         description: input.description,
         price: input.price,
+        pricingUnit: input.pricingUnit,
         keywords: input.keywords,
         status: ServiceStatus.REQUIRE_REVIEW,
       },

@@ -1,7 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '@prisma/prisma.service';
-import { Profile } from '@prisma/client';
+import { Prisma, Profile } from '@prisma/client';
 import { ProfileAlreadyExistsException } from '../exceptions/profile-already-exists.exception';
+import { PhoneAlreadyInUseException } from '../exceptions/phone-already-in-use.exception';
 
 type CreateProfileInput = {
   userId: string;
@@ -27,17 +28,28 @@ export class CreateProfileFeature {
       throw new ProfileAlreadyExistsException();
     }
 
-    return this.prisma.profile.create({
-      data: {
-        userId: input.userId,
-        firstName: input.firstName,
-        lastName: input.lastName,
-        birthDate: input.birthDate,
-        phone: input.phone,
-        address: input.address,
-        bio: input.bio,
-        profilePictureUrl: input.profilePictureUrl,
-      },
-    });
+    try {
+      return await this.prisma.profile.create({
+        data: {
+          userId: input.userId,
+          firstName: input.firstName,
+          lastName: input.lastName,
+          birthDate: input.birthDate,
+          phone: input.phone,
+          address: input.address,
+          bio: input.bio,
+          profilePictureUrl: input.profilePictureUrl,
+        },
+      });
+    } catch (e) {
+      if (
+        e instanceof Prisma.PrismaClientKnownRequestError &&
+        e.code === 'P2002'
+      ) {
+        const target = e.meta?.target as string[] | undefined;
+        if (target?.includes('phone')) throw new PhoneAlreadyInUseException();
+      }
+      throw e;
+    }
   }
 }

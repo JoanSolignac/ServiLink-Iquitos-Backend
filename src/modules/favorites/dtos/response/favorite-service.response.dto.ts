@@ -14,8 +14,11 @@ export class FavoriteServiceResponseDto {
   @ApiProperty({ example: ['plomería', 'reparación', 'tuberías'] })
   declare keywords: string[];
 
-  @ApiProperty({ example: 50.0 })
-  declare price: number;
+  @ApiProperty({ example: 50.0, nullable: true })
+  declare price: number | null;
+
+  @ApiPropertyOptional({ example: 'por hora', nullable: true })
+  declare pricingUnit: string | null;
 
   @ApiProperty({ enum: ServiceStatus, example: ServiceStatus.APPROVED })
   declare status: ServiceStatus;

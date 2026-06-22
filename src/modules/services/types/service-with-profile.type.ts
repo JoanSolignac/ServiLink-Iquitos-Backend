@@ -6,6 +6,7 @@ const BASE_SERVICE_SELECT = {
   description: true,
   keywords: true,
   price: true,
+  pricingUnit: true,
   status: true,
   averageRating: true,
   createdAt: true,

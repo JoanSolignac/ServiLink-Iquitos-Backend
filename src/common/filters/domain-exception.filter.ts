@@ -18,6 +18,7 @@ export class DomainExceptionFilter implements ExceptionFilter {
 
     [DomainErrorCode.USER_ALREADY_EXISTS]: HttpStatus.CONFLICT,
     [DomainErrorCode.PROFILE_ALREADY_EXISTS]: HttpStatus.CONFLICT,
+    [DomainErrorCode.PHONE_ALREADY_IN_USE]: HttpStatus.CONFLICT,
     [DomainErrorCode.USER_ALREADY_ACTIVE]: HttpStatus.CONFLICT,
     [DomainErrorCode.USER_ALREADY_INACTIVE]: HttpStatus.CONFLICT,
     [DomainErrorCode.USER_ALREADY_SUSPENDED]: HttpStatus.CONFLICT,
@@ -29,6 +30,8 @@ export class DomainExceptionFilter implements ExceptionFilter {
 
     [DomainErrorCode.INVALID_PROVIDER]: HttpStatus.BAD_REQUEST,
     [DomainErrorCode.PROVIDER_CONFLICT]: HttpStatus.CONFLICT,
+    [DomainErrorCode.EMAIL_ALREADY_VERIFIED]: HttpStatus.CONFLICT,
+    [DomainErrorCode.AUTH0_MANAGEMENT_ERROR]: HttpStatus.BAD_GATEWAY,
     [DomainErrorCode.SERVICE_ALREADY_APPROVED]: HttpStatus.CONFLICT,
 
     [DomainErrorCode.RATING_ALREADY_EXISTS]: HttpStatus.CONFLICT,

@@ -27,10 +27,18 @@ export class ServiceResponseDto {
   declare description: string;
 
   @ApiProperty({
-    description: 'Price of the service',
+    description: 'Price of the service. Null means negotiable.',
     example: 45.5,
+    nullable: true,
   })
-  declare price: number;
+  declare price: number | null;
+
+  @ApiProperty({
+    description: 'Unit of pricing (e.g. "por hora", "m²", "sesión")',
+    example: 'por hora',
+    nullable: true,
+  })
+  declare pricingUnit: string | null;
 
   @ApiProperty({
     description: 'Current status of the service',

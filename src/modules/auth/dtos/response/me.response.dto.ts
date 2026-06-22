@@ -20,4 +20,10 @@ export class MeResponseDto {
     example: true,
   })
   declare hasProfile: boolean;
+
+  @ApiProperty({
+    description: 'Whether the user email has been verified in Auth0',
+    example: true,
+  })
+  declare emailVerified: boolean;
 }

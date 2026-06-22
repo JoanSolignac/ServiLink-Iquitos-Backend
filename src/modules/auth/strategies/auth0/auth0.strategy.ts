@@ -64,11 +64,19 @@ export class Auth0Strategy extends PassportStrategy(Strategy, 'auth0') {
       }
     }
 
+    // Google ya verifica el correo de su lado, por lo que se considera verificado.
+    const isGoogleProvider = provider.toLowerCase().startsWith('google');
+    const emailVerified =
+      (payload['https://servilink.com/email_verified'] ?? false) ||
+      isGoogleProvider;
+
     return {
       id: user.id,
       role: user.role,
       email: user.email,
       hasProfile,
+      emailVerified,
+      authProviderId: payload.sub,
     };
   }
 }

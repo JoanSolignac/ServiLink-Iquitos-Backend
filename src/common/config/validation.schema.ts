@@ -28,6 +28,10 @@ export const validationSchema = Joi.object({
     .uri({ scheme: ['https'] })
     .required(),
 
+  AUTH0_MGMT_CLIENT_ID: Joi.string().required(),
+
+  AUTH0_MGMT_CLIENT_SECRET: Joi.string().required(),
+
   SUPABASE_URL: Joi.string()
     .uri({ scheme: ['https'] })
     .required(),
