@@ -50,4 +50,16 @@ export const validationSchema = Joi.object({
   FIREBASE_PROJECT_ID: Joi.string().required(),
   FIREBASE_CLIENT_EMAIL: Joi.string().email().required(),
   FIREBASE_PRIVATE_KEY: Joi.string().required(),
+
+  // Stripe Sandbox
+  STRIPE_SECRET_KEY: Joi.string().required(),
+  STRIPE_WEBHOOK_SECRET: Joi.string().required(),
+  STRIPE_PREMIUM_PRICE_ID: Joi.string().required(),
+  // Optional fallback: resolve the active price dynamically from this product
+  // when STRIPE_PREMIUM_PRICE_ID is unset or set to "price_placeholder".
+  STRIPE_PREMIUM_PRODUCT_ID: Joi.string().optional(),
+  STRIPE_SUCCESS_URL: Joi.string().required(),
+  STRIPE_CANCEL_URL: Joi.string().required(),
+  // Optional: dedicated return URL for the billing portal; defaults to STRIPE_SUCCESS_URL.
+  STRIPE_PORTAL_RETURN_URL: Joi.string().optional(),
 });

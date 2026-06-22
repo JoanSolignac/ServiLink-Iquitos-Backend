@@ -13,6 +13,7 @@ import { EventEmitterModule } from '@nestjs/event-emitter';
 import { DevicesModule } from './modules/devices/devices.module';
 import { RatingsModule } from '@modules/ratings/ratings.module';
 import { FavoritesModule } from '@modules/favorites/favorites.module';
+import { PaymentsModule } from './modules/payments/payments.module';
 
 @Module({
   imports: [
@@ -34,6 +35,7 @@ import { FavoritesModule } from '@modules/favorites/favorites.module';
     DevicesModule,
     RatingsModule,
     FavoritesModule,
+    PaymentsModule,
   ],
 })
 export class AppModule {}

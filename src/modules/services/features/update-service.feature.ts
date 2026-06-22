@@ -23,7 +23,9 @@ export class UpdateServiceFeature {
     });
 
     if (!existing) {
-      console.log('UpdateServiceFeature.execute: Error - Service not found', { serviceId: input.serviceId });
+      console.log('UpdateServiceFeature.execute: Error - Service not found', {
+        serviceId: input.serviceId,
+      });
       throw new ServiceNotFoundException();
     }
 
@@ -65,10 +67,15 @@ export class UpdateServiceFeature {
       urlsToDelete = existing.imageUrls.filter(
         (url) => !finalImageUrls.includes(url),
       );
-      console.log('UpdateServiceFeature.execute: Identified image URLs to delete', urlsToDelete);
+      console.log(
+        'UpdateServiceFeature.execute: Identified image URLs to delete',
+        urlsToDelete,
+      );
     }
 
-    console.log('UpdateServiceFeature.execute: Updating service in database...');
+    console.log(
+      'UpdateServiceFeature.execute: Updating service in database...',
+    );
     await this.prisma.service.update({
       where: { id: input.serviceId },
       data: {
@@ -81,9 +88,13 @@ export class UpdateServiceFeature {
         status: ServiceStatus.REQUIRE_REVIEW,
       },
     });
-    console.log('UpdateServiceFeature.execute: Service updated successfully in database');
+    console.log(
+      'UpdateServiceFeature.execute: Service updated successfully in database',
+    );
 
-    console.log('UpdateServiceFeature.execute: Execution finished, returning', { urlsToDelete });
+    console.log('UpdateServiceFeature.execute: Execution finished, returning', {
+      urlsToDelete,
+    });
     return { urlsToDelete };
   }
 }

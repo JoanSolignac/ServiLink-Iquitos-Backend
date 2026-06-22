@@ -26,4 +26,10 @@ export class MeResponseDto {
     example: true,
   })
   declare emailVerified: boolean;
+
+  @ApiProperty({
+    description: 'Whether the user has an active premium subscription',
+    example: false,
+  })
+  declare isPremium: boolean;
 }
