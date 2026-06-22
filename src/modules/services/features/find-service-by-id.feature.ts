@@ -5,7 +5,7 @@ import { ServiceNotFoundException } from '../exceptions/service-not-found.except
 import { FindServiceByIdInput } from '@modules/services/types/find-service-by-id-input.type';
 import {
   ServiceDetail,
-  SERVICE_DETAIL_SELECT,
+  getServiceDetailSelect,
 } from '@modules/services/types/service-with-profile.type';
 
 @Injectable()
@@ -15,7 +15,7 @@ export class FindServiceByIdFeature {
   async execute(input: FindServiceByIdInput): Promise<ServiceDetail> {
     const service = await this.prisma.service.findUnique({
       where: { id: input.serviceId },
-      select: SERVICE_DETAIL_SELECT,
+      select: getServiceDetailSelect(input.requestingUserId),
     });
 
     if (!service) {

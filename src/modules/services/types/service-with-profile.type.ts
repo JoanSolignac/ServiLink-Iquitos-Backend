@@ -32,33 +32,38 @@ export const SERVICE_WITH_PROFILE_SELECT = {
   ...BASE_SERVICE_SELECT,
 } satisfies Prisma.ServiceSelect;
 
-export const SERVICE_DETAIL_SELECT = {
-  ...BASE_SERVICE_SELECT,
-  ratings: {
-    select: {
-      score: true,
-      comment: true,
-      createdAt: true,
-      customer: {
-        select: {
-          profile: {
-            select: {
-              firstName: true,
-              lastName: true,
-              profilePictureUrl: true,
+export function getServiceDetailSelect(excludeUserId?: string) {
+  return {
+    ...BASE_SERVICE_SELECT,
+    ratings: {
+      select: {
+        score: true,
+        comment: true,
+        createdAt: true,
+        customer: {
+          select: {
+            profile: {
+              select: {
+                firstName: true,
+                lastName: true,
+                profilePictureUrl: true,
+              },
             },
           },
         },
       },
+      ...(excludeUserId
+        ? { where: { customerId: { not: excludeUserId } } }
+        : {}),
+      orderBy: { createdAt: 'desc' as const },
     },
-    orderBy: { createdAt: 'desc' as const },
-  },
-} satisfies Prisma.ServiceSelect;
+  } satisfies Prisma.ServiceSelect;
+}
 
 export type ServiceWithProfile = Prisma.ServiceGetPayload<{
   select: typeof SERVICE_WITH_PROFILE_SELECT;
 }>;
 
 export type ServiceDetail = Prisma.ServiceGetPayload<{
-  select: typeof SERVICE_DETAIL_SELECT;
+  select: ReturnType<typeof getServiceDetailSelect>;
 }>;

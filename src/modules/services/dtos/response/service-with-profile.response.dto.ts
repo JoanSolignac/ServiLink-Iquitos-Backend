@@ -66,3 +66,23 @@ export class ServiceDetailResponseDto extends ServiceWithProfileResponseDto {
   @ApiProperty({ type: [ServiceRatingResponseDto] })
   declare ratings: ServiceRatingResponseDto[];
 }
+
+export class ServiceMyRatingResponseDto {
+  @ApiProperty({ example: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890' })
+  declare id: string;
+
+  @ApiProperty({ example: 'Juan Pérez' })
+  declare customerName: string;
+
+  @ApiProperty({ example: 'https://example.com/photo.jpg', nullable: true })
+  declare customerPictureUrl: string | null;
+
+  @ApiProperty({ example: 4, minimum: 0, maximum: 5 })
+  declare score: number;
+
+  @ApiPropertyOptional({ example: 'Buen servicio.', nullable: true })
+  declare comment: string | null;
+
+  @ApiProperty({ example: '2024-01-15T10:30:00.000Z' })
+  declare createdAt: Date;
+}

@@ -34,6 +34,10 @@ import { UpdateServiceFeature } from './features/update-service.feature';
 import { ApproveServiceFeature } from './features/approve-service.feature';
 import { RejectServiceFeature } from './features/reject-service.feature';
 import { FindServiceByIdFeature } from './features/find-service-by-id.feature';
+import {
+  FindMyRatingFeature,
+  type MyRating,
+} from '@modules/ratings/features/find-my-rating.feature';
 import { ListPublicServicesFeature } from './features/list-public-services.feature';
 import { ListMyServicesFeature } from './features/list-my-services.feature';
 import { ListAdminServicesFeature } from './features/list-admin-services.feature';
@@ -42,6 +46,7 @@ import {
   ServiceWithProfileResponseDto,
   ServiceDetailResponseDto,
   ServiceRatingResponseDto,
+  ServiceMyRatingResponseDto,
 } from './dtos/response/service-with-profile.response.dto';
 import { ServiceWithProfilePaginatedResponseDto } from './dtos/response/service-with-profile-paginated.response.dto';
 import {
@@ -104,6 +109,18 @@ function toResponseServiceDetail(
   };
 }
 
+function toResponseMyRating(rating: MyRating): ServiceMyRatingResponseDto {
+  return {
+    id: rating.id,
+    customerName:
+      `${rating.customer.profile?.firstName ?? ''} ${rating.customer.profile?.lastName ?? ''}`.trim(),
+    customerPictureUrl: rating.customer.profile?.profilePictureUrl ?? null,
+    score: rating.score,
+    comment: rating.comment,
+    createdAt: rating.createdAt,
+  };
+}
+
 function toResponseMyService(myService: MyService): MyServiceResponseDto {
   return {
     serviceId: myService.id,
@@ -131,6 +148,7 @@ export class ServicesController {
     private readonly listMyServicesFeature: ListMyServicesFeature,
     private readonly listAdminServicesFeature: ListAdminServicesFeature,
     private readonly supabaseStorage: SupabaseStorageService,
+    private readonly findMyRatingFeature: FindMyRatingFeature,
   ) {}
 
   @Post()
@@ -371,6 +389,34 @@ export class ServicesController {
         total: result.total,
       },
     };
+  }
+
+  @Get(':id/my-rating')
+  @UseAuth()
+  @ApiOperation({ summary: 'Get the authenticated user rating for a service' })
+  @ApiParam({
+    name: 'id',
+    description: 'Service ID',
+    example: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'User rating for the service, or null if not rated',
+    type: ServiceMyRatingResponseDto,
+  })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  async findMyRating(
+    @CurrentUser() authCurrentUser: AuthCurrentUser,
+    @Param('id') id: string,
+  ): Promise<ServiceMyRatingResponseDto | null> {
+    const rating = await this.findMyRatingFeature.execute(
+      id,
+      authCurrentUser.id,
+    );
+
+    if (!rating) return null;
+
+    return toResponseMyRating(rating);
   }
 
   @Get(':id')

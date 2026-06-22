@@ -9,6 +9,7 @@ import { FindServiceByIdFeature } from './features/find-service-by-id.feature';
 import { ListPublicServicesFeature } from './features/list-public-services.feature';
 import { ListMyServicesFeature } from './features/list-my-services.feature';
 import { ListAdminServicesFeature } from './features/list-admin-services.feature';
+import { FindMyRatingFeature } from '@modules/ratings/features/find-my-rating.feature';
 
 @Module({
   imports: [PrismaModule],
@@ -22,6 +23,7 @@ import { ListAdminServicesFeature } from './features/list-admin-services.feature
     ListPublicServicesFeature,
     ListMyServicesFeature,
     ListAdminServicesFeature,
+    FindMyRatingFeature,
   ],
 })
 export class ServicesModule {}
