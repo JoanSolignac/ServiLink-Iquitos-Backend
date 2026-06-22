@@ -76,6 +76,7 @@ function toResponseServiceWithProfile(
     price: service.price != null ? service.price.toNumber() : null,
     pricingUnit: service.pricingUnit ?? null,
     status: service.status,
+    providerId: service.user.id,
     providerName:
       `${service.user.profile!.firstName} ${service.user.profile!.lastName}`.trim(),
     providerPictureUrl: service.user.profile?.profilePictureUrl ?? '',
@@ -87,7 +88,6 @@ function toResponseServiceDetail(
   service: ServiceDetail,
 ): ServiceDetailResponseDto {
   const ratings: ServiceRatingResponseDto[] = service.ratings.map((r) => ({
-    customerId: r.customer.id,
     customerName:
       `${r.customer.profile?.firstName ?? ''} ${r.customer.profile?.lastName ?? ''}`.trim(),
     customerPictureUrl: r.customer.profile?.profilePictureUrl ?? null,
