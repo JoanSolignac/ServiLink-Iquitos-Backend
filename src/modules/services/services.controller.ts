@@ -5,6 +5,7 @@ import {
   HttpStatus,
   Post,
   Patch,
+  Delete,
   Param,
   Body,
   Query,
@@ -41,6 +42,8 @@ import {
 import { ListPublicServicesFeature } from './features/list-public-services.feature';
 import { ListMyServicesFeature } from './features/list-my-services.feature';
 import { ListAdminServicesFeature } from './features/list-admin-services.feature';
+import { DeleteMyServiceFeature } from './features/delete-my-service.feature';
+import { DeleteServiceByAdminFeature } from './features/delete-service-by-admin.feature';
 import { PaginateQueryDto } from '@common/dtos/request/paginate-query.request.dto';
 import {
   ServiceWithProfileResponseDto,
@@ -149,6 +152,8 @@ export class ServicesController {
     private readonly listAdminServicesFeature: ListAdminServicesFeature,
     private readonly supabaseStorage: SupabaseStorageService,
     private readonly findMyRatingFeature: FindMyRatingFeature,
+    private readonly deleteMyServiceFeature: DeleteMyServiceFeature,
+    private readonly deleteServiceByAdminFeature: DeleteServiceByAdminFeature,
   ) {}
 
   @Post()
@@ -492,5 +497,58 @@ export class ServicesController {
   @ApiResponse({ status: 404, description: 'Service not found' })
   async reject(@Param('id') id: string): Promise<void> {
     await this.rejectServiceFeature.execute(id);
+  }
+
+  @Delete(':id')
+  @UseAuth()
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @ApiOperation({ summary: 'Delete own service' })
+  @ApiParam({
+    name: 'id',
+    description: 'Service ID',
+    example: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890',
+  })
+  @ApiResponse({ status: 204, description: 'Service deleted successfully' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 403, description: 'Forbidden - not the owner' })
+  @ApiResponse({ status: 404, description: 'Service not found' })
+  async deleteMyService(
+    @CurrentUser() authCurrentUser: AuthCurrentUser,
+    @Param('id') id: string,
+  ): Promise<void> {
+    const { urlsToDelete } = await this.deleteMyServiceFeature.execute(
+      authCurrentUser.id,
+      id,
+    );
+    if (urlsToDelete.length > 0) {
+      await Promise.allSettled(
+        urlsToDelete.map((url) => this.supabaseStorage.delete(url)),
+      );
+    }
+  }
+
+  @Delete(':id/admin')
+  @UseAuth(UserRole.MODERATOR, UserRole.ADMINISTRATOR)
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @ApiOperation({ summary: 'Delete any service (moderator/admin only)' })
+  @ApiParam({
+    name: 'id',
+    description: 'Service ID',
+    example: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890',
+  })
+  @ApiResponse({ status: 204, description: 'Service deleted successfully' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({
+    status: 403,
+    description: 'Forbidden - requires MODERATOR or ADMINISTRATOR',
+  })
+  @ApiResponse({ status: 404, description: 'Service not found' })
+  async deleteServiceByAdmin(@Param('id') id: string): Promise<void> {
+    const { urlsToDelete } = await this.deleteServiceByAdminFeature.execute(id);
+    if (urlsToDelete.length > 0) {
+      await Promise.allSettled(
+        urlsToDelete.map((url) => this.supabaseStorage.delete(url)),
+      );
+    }
   }
 }
