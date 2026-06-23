@@ -8,7 +8,7 @@ import {
   Min,
 } from 'class-validator';
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import { Transform } from 'class-transformer';
+import { Transform, Type } from 'class-transformer';
 
 export class UpdateServiceRequestDto {
   @ApiPropertyOptional({
@@ -38,6 +38,7 @@ export class UpdateServiceRequestDto {
   @IsNumber()
   @Min(0)
   @IsOptional()
+  @Type(() => Number)
   declare price?: number | null;
 
   @ApiPropertyOptional({
