@@ -8,6 +8,9 @@ import {
   Body,
   Query,
 } from '@nestjs/common';
+import { AuthCurrentUser } from '@common/interfaces/auth-current-user.interface';
+import { CurrentUser } from '@common/decorators/current-user.decorator';
+
 import {
   ApiTags,
   ApiBearerAuth,
@@ -83,11 +86,13 @@ export class UsersController {
   })
   async listUsers(
     @Query() query: ListUsersQueryDto,
+    @CurrentUser() currentUser: AuthCurrentUser,
   ): Promise<UserWithProfilePaginatedResponseDto> {
     const result = await this.listUsersFeature.execute({
       page: query.page ?? 1,
       limit: query.limit ?? 10,
       search: query.search,
+      excludeId: currentUser.id,
     });
 
     return {
