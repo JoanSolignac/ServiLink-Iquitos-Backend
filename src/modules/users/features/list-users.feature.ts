@@ -14,7 +14,9 @@ export class ListUsersFeature {
   async execute(input: ListUsersInput): Promise<PaginatedUsers> {
     const { skip, take } = resolvePagination(input.page, input.limit);
 
-    const where: Prisma.UserWhereInput = {};
+    const where: Prisma.UserWhereInput = {
+      NOT: { id: input.excludeId },
+    };
 
     if (input.search) {
       where.OR = [

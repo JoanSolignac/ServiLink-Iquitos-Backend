@@ -1,4 +1,10 @@
-import { IsString, IsNotEmpty, IsDate, IsOptional } from 'class-validator';
+import {
+  IsString,
+  IsNotEmpty,
+  IsDate,
+  IsOptional,
+  Matches,
+} from 'class-validator';
 import { Type } from 'class-transformer';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
@@ -17,6 +23,15 @@ export class CreateProfileRequestDto {
   @IsDate()
   @Type(() => Date)
   declare birthDate: Date;
+
+  @ApiProperty({
+    description: 'DNI (8 numeric digits)',
+    example: '12345678',
+  })
+  @IsString()
+  @IsNotEmpty()
+  @Matches(/^\d{8}$/, { message: 'DNI must be exactly 8 numeric digits' })
+  declare dni: string;
 
   @ApiPropertyOptional({ description: 'Phone number', example: '+51999999999' })
   @IsString()

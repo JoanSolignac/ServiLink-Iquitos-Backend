@@ -16,6 +16,9 @@ export class ProfileResponseDto {
   })
   declare birthDate: Date;
 
+  @ApiProperty({ description: 'DNI (8 numeric digits)', example: '12345678' })
+  declare dni: string;
+
   @ApiProperty({
     description: 'Profile picture URL',
     example:

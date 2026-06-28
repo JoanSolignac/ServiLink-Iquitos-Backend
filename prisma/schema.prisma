@@ -65,6 +65,7 @@ model Profile {
   firstName         String
   lastName          String
   birthDate         DateTime
+  dni               String   @unique
   profilePictureUrl String?
   bio               String?
   phone             String?  @unique

@@ -44,6 +44,7 @@ function toResponseProfile(profile: {
   firstName: string;
   lastName: string;
   birthDate: Date;
+  dni: string;
   profilePictureUrl: string | null;
   bio: string | null;
   phone: string | null;
@@ -57,6 +58,7 @@ function toResponseProfile(profile: {
     firstName: profile.firstName,
     lastName: profile.lastName,
     birthDate: profile.birthDate,
+    dni: profile.dni,
     profilePictureUrl: profile.profilePictureUrl,
     bio: profile.bio,
     phone: profile.phone,
@@ -125,6 +127,7 @@ export class ProfilesController {
       firstName: dto.firstName,
       lastName: dto.lastName,
       birthDate: dto.birthDate,
+      dni: dto.dni,
       phone: dto.phone ?? null,
       address: dto.address ?? null,
       bio: dto.bio ?? null,
@@ -266,9 +269,6 @@ export class ProfilesController {
 
     const profile = await this.updateProfileFeature.execute({
       userId: authCurrentUser.id,
-      firstName: dto.firstName,
-      lastName: dto.lastName,
-      birthDate: dto.birthDate,
       phone: dto.phone ?? null,
       address: dto.address ?? null,
       bio: dto.bio ?? null,

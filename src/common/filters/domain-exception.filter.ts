@@ -19,6 +19,7 @@ export class DomainExceptionFilter implements ExceptionFilter {
     [DomainErrorCode.USER_ALREADY_EXISTS]: HttpStatus.CONFLICT,
     [DomainErrorCode.PROFILE_ALREADY_EXISTS]: HttpStatus.CONFLICT,
     [DomainErrorCode.PHONE_ALREADY_IN_USE]: HttpStatus.CONFLICT,
+    [DomainErrorCode.DNI_ALREADY_IN_USE]: HttpStatus.CONFLICT,
     [DomainErrorCode.USER_ALREADY_ACTIVE]: HttpStatus.CONFLICT,
     [DomainErrorCode.USER_ALREADY_INACTIVE]: HttpStatus.CONFLICT,
     [DomainErrorCode.USER_ALREADY_SUSPENDED]: HttpStatus.CONFLICT,
