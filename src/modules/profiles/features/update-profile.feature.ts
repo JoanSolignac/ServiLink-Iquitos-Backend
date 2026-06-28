@@ -6,9 +6,6 @@ import { PhoneAlreadyInUseException } from '../exceptions/phone-already-in-use.e
 
 type UpdateProfileInput = {
   userId: string;
-  firstName: string;
-  lastName: string;
-  birthDate: Date;
   phone: string | null;
   address: string | null;
   bio: string | null;
@@ -26,9 +23,6 @@ export class UpdateProfileFeature {
       return await this.prisma.profile.update({
         where: { userId: input.userId },
         data: {
-          firstName: input.firstName,
-          lastName: input.lastName,
-          birthDate: input.birthDate,
           phone: input.phone,
           address: input.address,
           bio: input.bio,
