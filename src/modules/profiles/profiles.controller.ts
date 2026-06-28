@@ -35,7 +35,9 @@ import { UpdateProfileFeature } from './features/update-profile.feature';
 import { FindProfileByUserIdFeature } from './features/find-profile-by-user-id.feature';
 import { GetProviderPublicProfileFeature } from './features/get-provider-public-profile.feature';
 import { CheckPhoneExistsFeature } from './features/check-phone-exists.feature';
+import { CheckDniExistsFeature } from './features/check-dni-exists.feature';
 import { CheckPhoneQueryDto } from './dtos/request/check-phone.query.dto';
+import { CheckDniQueryDto } from './dtos/query/check-dni.query.dto';
 import { CheckExistsResponseDto } from './dtos/response/check-exists.response.dto';
 import { SupabaseStorageService } from '@supabase/services/supabase-storage.service';
 
@@ -86,6 +88,7 @@ export class ProfilesController {
     private readonly findProfileByUserIdFeature: FindProfileByUserIdFeature,
     private readonly getProviderPublicProfileFeature: GetProviderPublicProfileFeature,
     private readonly checkPhoneExistsFeature: CheckPhoneExistsFeature,
+    private readonly checkDniExistsFeature: CheckDniExistsFeature,
     private readonly supabaseStorage: SupabaseStorageService,
   ) {}
 
@@ -147,6 +150,17 @@ export class ProfilesController {
     @Query() query: CheckPhoneQueryDto,
   ): Promise<CheckExistsResponseDto> {
     const exists = await this.checkPhoneExistsFeature.execute(query.phone);
+    return { exists };
+  }
+
+  @Get('check-dni')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Verificar si un DNI ya está registrado' })
+  @ApiResponse({ status: 200, type: CheckExistsResponseDto })
+  async checkDni(
+    @Query() query: CheckDniQueryDto,
+  ): Promise<CheckExistsResponseDto> {
+    const exists = await this.checkDniExistsFeature.execute(query.dni);
     return { exists };
   }
 
