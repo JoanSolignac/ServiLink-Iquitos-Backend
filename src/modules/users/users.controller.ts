@@ -8,7 +8,7 @@ import {
   Body,
   Query,
 } from '@nestjs/common';
-import { AuthCurrentUser } from '@common/interfaces/auth-current-user.interface';
+import type { AuthCurrentUser } from '@common/interfaces/auth-current-user.interface';
 import { CurrentUser } from '@common/decorators/current-user.decorator';
 
 import {
