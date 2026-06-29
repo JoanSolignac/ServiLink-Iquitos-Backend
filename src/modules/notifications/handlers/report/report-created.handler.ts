@@ -32,7 +32,12 @@ export class ReportCreatedHandler {
         this.emailSend.send({
           to: event.moderatorEmails,
           subject: 'Nuevo reporte pendiente en ServiLink',
-          htmlContent: buildEmailTemplateReportCreatedModerator(),
+          htmlContent: buildEmailTemplateReportCreatedModerator(
+            event.reporterName,
+            event.subject,
+            event.targetName,
+            event.reportType,
+          ),
         }),
       );
     }

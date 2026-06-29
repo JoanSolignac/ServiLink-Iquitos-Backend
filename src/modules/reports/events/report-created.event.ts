@@ -4,5 +4,8 @@ export class ReportCreatedEvent {
     public readonly reporterName: string,
     public readonly moderatorEmails: Array<{ name: string; email: string }>,
     public readonly moderatorFcmTokens: string[],
+    public readonly subject: string,
+    public readonly targetName: string,
+    public readonly reportType: 'SERVICE' | 'USER',
   ) {}
 }

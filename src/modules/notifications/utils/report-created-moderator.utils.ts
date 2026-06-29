@@ -1,4 +1,14 @@
-export function buildEmailTemplateReportCreatedModerator(): string {
+export function buildEmailTemplateReportCreatedModerator(
+  reporterName: string,
+  subject: string,
+  targetName: string,
+  reportType: 'SERVICE' | 'USER',
+): string {
+  const typeLabel =
+    reportType === 'SERVICE' ? 'Reporte de servicio' : 'Reporte de usuario';
+  const targetLabel =
+    reportType === 'SERVICE' ? 'Servicio reportado' : 'Usuario reportado';
+
   return `
     <!DOCTYPE html>
     <html lang="es">
@@ -21,6 +31,8 @@ export function buildEmailTemplateReportCreatedModerator(): string {
                 cellpadding="0"
                 cellspacing="0"
                 style="
+                  max-width: 600px;
+                  width: 100%;
                   background: #ffffff;
                   border-radius: 24px;
                   overflow: hidden;
@@ -33,21 +45,8 @@ export function buildEmailTemplateReportCreatedModerator(): string {
                     style="
                       background: linear-gradient(180deg, #dc2626 0%, #b91c1c 100%);
                       padding: 48px 40px;
-                      position: relative;
                     "
                   >
-                    <div
-                      style="
-                        width: 80px;
-                        height: 80px;
-                        background: #f36f21;
-                        border-radius: 50%;
-                        position: absolute;
-                        top: -20px;
-                        right: -20px;
-                      "
-                    ></div>
-
                     <p
                       style="
                         color: #fde68a;
@@ -101,39 +100,60 @@ export function buildEmailTemplateReportCreatedModerator(): string {
 
                     <p
                       style="
-                        margin: 0 0 20px;
+                        margin: 0 0 24px;
                         font-size: 16px;
                         line-height: 1.8;
                         color: #4b5563;
                       "
                     >
-                      Se ha recibido un nuevo reporte en la plataforma ServiLink.
-                      Por favor, accede a la aplicación para revisar los detalles y
-                      tomar las acciones correspondientes.
+                      Se ha recibido un nuevo reporte en la plataforma ServiLink
+                      con los siguientes detalles:
                     </p>
 
-                    <div
+                    <!-- Detalles del reporte -->
+                    <table
+                      width="100%"
+                      cellpadding="0"
+                      cellspacing="0"
                       style="
                         background: #fef2f2;
                         border-left: 4px solid #dc2626;
-                        padding: 20px;
                         border-radius: 12px;
-                        margin: 30px 0;
+                        margin: 0 0 32px;
+                        overflow: hidden;
                       "
                     >
-                      <p
-                        style="
-                          margin: 0;
-                          font-size: 15px;
-                          line-height: 1.8;
-                          color: #374151;
-                        "
-                      >
-                        Revisa la aplicación para ver el <strong>asunto</strong>,
-                        la <strong>descripción</strong> y el <strong>estado</strong>
-                        del reporte.
-                      </p>
-                    </div>
+                      <tr>
+                        <td style="padding: 24px;">
+                          <table width="100%" cellpadding="0" cellspacing="0">
+                            <tr>
+                              <td style="padding: 8px 0; border-bottom: 1px solid #fecaca;">
+                                <p style="margin: 0; font-size: 12px; font-weight: 700; color: #991b1b; text-transform: uppercase; letter-spacing: 1px;">Tipo</p>
+                                <p style="margin: 4px 0 0; font-size: 15px; color: #1f2937; font-weight: 600;">${typeLabel}</p>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td style="padding: 8px 0; border-bottom: 1px solid #fecaca;">
+                                <p style="margin: 0; font-size: 12px; font-weight: 700; color: #991b1b; text-transform: uppercase; letter-spacing: 1px;">${targetLabel}</p>
+                                <p style="margin: 4px 0 0; font-size: 15px; color: #1f2937; font-weight: 600;">${targetName}</p>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td style="padding: 8px 0; border-bottom: 1px solid #fecaca;">
+                                <p style="margin: 0; font-size: 12px; font-weight: 700; color: #991b1b; text-transform: uppercase; letter-spacing: 1px;">Reportado por</p>
+                                <p style="margin: 4px 0 0; font-size: 15px; color: #1f2937; font-weight: 600;">${reporterName}</p>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td style="padding: 8px 0;">
+                                <p style="margin: 0; font-size: 12px; font-weight: 700; color: #991b1b; text-transform: uppercase; letter-spacing: 1px;">Asunto</p>
+                                <p style="margin: 4px 0 0; font-size: 15px; color: #1f2937;">${subject}</p>
+                              </td>
+                            </tr>
+                          </table>
+                        </td>
+                      </tr>
+                    </table>
 
                     <p
                       style="
@@ -143,9 +163,43 @@ export function buildEmailTemplateReportCreatedModerator(): string {
                         color: #4b5563;
                       "
                     >
-                      Agradecemos tu compromiso con mantener la calidad y seguridad
-                      de nuestra comunidad en Iquitos.
+                      Por favor, accede a la aplicación para revisar los detalles
+                      completos y tomar las acciones correspondientes.
                     </p>
+
+                    <!-- Botón CTA -->
+                    <table width="100%" cellpadding="0" cellspacing="0">
+                      <tr>
+                        <td align="center">
+                          <table cellpadding="0" cellspacing="0">
+                            <tr>
+                              <td
+                                style="
+                                  background: #dc2626;
+                                  border-radius: 12px;
+                                "
+                              >
+                                <a
+                                  href="#"
+                                  style="
+                                    display: inline-block;
+                                    padding: 14px 32px;
+                                    color: #ffffff;
+                                    font-size: 15px;
+                                    font-weight: 700;
+                                    text-decoration: none;
+                                    border-radius: 12px;
+                                    letter-spacing: 0.5px;
+                                  "
+                                >
+                                  Ver reporte en la app
+                                </a>
+                              </td>
+                            </tr>
+                          </table>
+                        </td>
+                      </tr>
+                    </table>
                   </td>
                 </tr>
 
