@@ -4,7 +4,10 @@ import { EventEmitter2 } from '@nestjs/event-emitter';
 import { ReportTargetNotFoundException } from '@modules/reports/exceptions/report-target-not-found.exception';
 import { ReportCooldownActiveException } from '@modules/reports/exceptions/report-cooldown-active.exception';
 import { ReportCreatedEvent } from '@modules/reports/events/report-created.event';
+import { UserReportThresholdReachedEvent } from '@modules/reports/events/user-report-threshold-reached.event';
 import { UserRole } from '@prisma/client';
+
+const REPORT_WARNING_THRESHOLD = 5;
 
 const COOLDOWN_MS = 24 * 60 * 60 * 1000;
 
@@ -23,7 +26,7 @@ export class CreateServiceReportFeature {
   ): Promise<void> {
     const service = await this.prisma.service.findUnique({
       where: { id: serviceId },
-      select: { id: true },
+      select: { id: true, userId: true },
     });
 
     if (!service) {
@@ -96,5 +99,41 @@ export class CreateServiceReportFeature {
         moderatorFcmTokens,
       ),
     );
+
+    await this.checkAndNotifyThreshold(service.userId);
+  }
+
+  private async checkAndNotifyThreshold(targetUserId: string): Promise<void> {
+    const [profileCount, serviceCount] = await Promise.all([
+      this.prisma.report.count({ where: { targetUserId, status: 'PENDING' } }),
+      this.prisma.report.count({
+        where: {
+          typeReport: 'SERVICE',
+          status: 'PENDING',
+          service: { userId: targetUserId },
+        },
+      }),
+    ]);
+
+    if (profileCount + serviceCount > REPORT_WARNING_THRESHOLD) {
+      const target = await this.prisma.user.findUnique({
+        where: { id: targetUserId },
+        select: {
+          email: true,
+          profile: { select: { firstName: true, lastName: true } },
+        },
+      });
+
+      if (target) {
+        const targetName = target.profile
+          ? `${target.profile.firstName} ${target.profile.lastName}`
+          : target.email;
+
+        await this.eventEmitter.emitAsync(
+          UserReportThresholdReachedEvent.name,
+          new UserReportThresholdReachedEvent(target.email, targetName),
+        );
+      }
+    }
   }
 }
