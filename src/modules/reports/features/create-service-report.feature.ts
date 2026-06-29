@@ -26,7 +26,7 @@ export class CreateServiceReportFeature {
   ): Promise<void> {
     const service = await this.prisma.service.findUnique({
       where: { id: serviceId },
-      select: { id: true, userId: true },
+      select: { id: true, userId: true, title: true },
     });
 
     if (!service) {
@@ -79,12 +79,12 @@ export class CreateServiceReportFeature {
       ? `${reporter.profile.firstName} ${reporter.profile.lastName}`
       : (reporter?.email ?? '');
 
-    const moderatorEmails = moderators
-      .filter((m) => m.profile)
-      .map((m) => ({
-        name: `${m.profile!.firstName} ${m.profile!.lastName}`,
-        email: m.email,
-      }));
+    const moderatorEmails = moderators.map((m) => ({
+      name: m.profile
+        ? `${m.profile.firstName} ${m.profile.lastName}`
+        : m.email,
+      email: m.email,
+    }));
 
     const moderatorFcmTokens = moderators.flatMap((m) =>
       m.devices.map((d) => d.fcmToken),
@@ -97,6 +97,9 @@ export class CreateServiceReportFeature {
         reporterName,
         moderatorEmails,
         moderatorFcmTokens,
+        subject,
+        service.title,
+        'SERVICE',
       ),
     );
 

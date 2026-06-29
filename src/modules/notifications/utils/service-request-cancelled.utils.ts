@@ -32,6 +32,8 @@ export function buildEmailTemplateServiceRequestCancelled(
                 cellpadding="0"
                 cellspacing="0"
                 style="
+                  max-width: 600px;
+                  width: 100%;
                   background: #ffffff;
                   border-radius: 24px;
                   overflow: hidden;

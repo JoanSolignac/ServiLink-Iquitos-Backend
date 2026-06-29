@@ -26,7 +26,11 @@ export class CreateUserReportFeature {
   ): Promise<void> {
     const target = await this.prisma.user.findUnique({
       where: { id: targetUserId },
-      select: { id: true },
+      select: {
+        id: true,
+        email: true,
+        profile: { select: { firstName: true, lastName: true } },
+      },
     });
 
     if (!target) {
@@ -79,16 +83,20 @@ export class CreateUserReportFeature {
       ? `${reporter.profile.firstName} ${reporter.profile.lastName}`
       : (reporter?.email ?? '');
 
-    const moderatorEmails = moderators
-      .filter((m) => m.profile)
-      .map((m) => ({
-        name: `${m.profile!.firstName} ${m.profile!.lastName}`,
-        email: m.email,
-      }));
+    const moderatorEmails = moderators.map((m) => ({
+      name: m.profile
+        ? `${m.profile.firstName} ${m.profile.lastName}`
+        : m.email,
+      email: m.email,
+    }));
 
     const moderatorFcmTokens = moderators.flatMap((m) =>
       m.devices.map((d) => d.fcmToken),
     );
+
+    const targetName = target.profile
+      ? `${target.profile.firstName} ${target.profile.lastName}`
+      : target.email;
 
     await this.eventEmitter.emitAsync(
       ReportCreatedEvent.name,
@@ -97,6 +105,9 @@ export class CreateUserReportFeature {
         reporterName,
         moderatorEmails,
         moderatorFcmTokens,
+        subject,
+        targetName,
+        'USER',
       ),
     );
 
