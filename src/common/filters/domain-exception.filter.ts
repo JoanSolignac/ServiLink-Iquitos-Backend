@@ -48,6 +48,10 @@ export class DomainExceptionFilter implements ExceptionFilter {
     [DomainErrorCode.STRIPE_NO_CUSTOMER]: HttpStatus.BAD_REQUEST,
     [DomainErrorCode.STRIPE_SESSION_FAILED]: HttpStatus.BAD_GATEWAY,
     [DomainErrorCode.SUBSCRIPTION_ALREADY_ACTIVE]: HttpStatus.CONFLICT,
+
+    [DomainErrorCode.REPORT_NOT_FOUND]: HttpStatus.NOT_FOUND,
+    [DomainErrorCode.REPORT_TARGET_NOT_FOUND]: HttpStatus.NOT_FOUND,
+    [DomainErrorCode.REPORT_COOLDOWN_ACTIVE]: HttpStatus.TOO_MANY_REQUESTS,
   };
 
   catch(exception: DomainException, host: ArgumentsHost) {

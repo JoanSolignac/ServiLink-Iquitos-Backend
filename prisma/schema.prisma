@@ -22,12 +22,14 @@ model User {
   stripeCustomerId     String? @unique
   stripeSubscriptionId String? @unique
 
-  authIdentities AuthIdentity[]
-  devices        Device[]
-  profile        Profile?
-  services       Service[]
-  ratings        Rating[]       @relation("CustomerRatings")
-  favorites      Favorite[]
+  authIdentities   AuthIdentity[]
+  devices          Device[]
+  profile          Profile?
+  services         Service[]
+  ratings          Rating[]   @relation("CustomerRatings")
+  favorites        Favorite[]
+  reportsAsReporter Report[]  @relation("ReporterReports")
+  reportsAsTarget  Report[]   @relation("TargetUserReports")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -109,6 +111,7 @@ model Service {
   user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
   ratings   Rating[]
   favorites Favorite[]
+  reports   Report[]
 
   @@map("services")
 }
@@ -146,4 +149,33 @@ model Favorite {
 
   @@id([userId, serviceId])
   @@map("favorites")
+}
+
+enum ReportStatus {
+  PENDING
+  REVIEWED
+}
+
+enum ReportType {
+  SERVICE
+  USER
+}
+
+model Report {
+  id           String       @id @default(uuid())
+  reporterId   String
+  serviceId    String?
+  targetUserId String?
+  subject      String
+  description  String
+  status       ReportStatus @default(PENDING)
+  typeReport   ReportType
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+
+  reporter   User     @relation("ReporterReports", fields: [reporterId], references: [id], onDelete: Cascade)
+  service    Service? @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+  targetUser User?    @relation("TargetUserReports", fields: [targetUserId], references: [id], onDelete: Cascade)
+
+  @@map("reports")
 }
