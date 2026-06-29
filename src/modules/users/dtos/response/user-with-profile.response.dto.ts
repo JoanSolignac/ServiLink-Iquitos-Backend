@@ -29,6 +29,14 @@ export class UserWithProfileResponseDto {
   declare status: UserStatus;
 
   @ApiPropertyOptional({
+    description:
+      'Fecha hasta cuando está baneado. Null = ban indefinido o no baneado.',
+    example: '2026-07-15T11:00:00.000Z',
+    nullable: true,
+  })
+  declare bannedUntil: Date | null;
+
+  @ApiPropertyOptional({
     description: 'Nombre completo del perfil (firstName + lastName)',
     example: 'Juan Pérez',
     nullable: true,

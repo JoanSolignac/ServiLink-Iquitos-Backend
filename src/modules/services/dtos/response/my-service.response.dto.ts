@@ -1,4 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+
 import { ServiceStatus } from '@prisma/client';
 
 export class MyServiceResponseDto {
@@ -22,6 +23,14 @@ export class MyServiceResponseDto {
 
   @ApiProperty({ enum: ServiceStatus, example: ServiceStatus.REQUIRE_REVIEW })
   declare status: ServiceStatus;
+
+  @ApiPropertyOptional({
+    description:
+      'Fecha hasta cuando el servicio está desactivado. Null = desactivado indefinidamente o no desactivado.',
+    example: '2026-07-15T11:00:00.000Z',
+    nullable: true,
+  })
+  declare disabledUntil: Date | null;
 
   @ApiProperty({ example: ['https://example.com/img1.jpg'], type: [String] })
   declare imageUrls: string[];

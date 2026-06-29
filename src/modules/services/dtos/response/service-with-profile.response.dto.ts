@@ -23,6 +23,14 @@ export class ServiceWithProfileResponseDto {
   @ApiProperty({ enum: ServiceStatus, example: ServiceStatus.APPROVED })
   declare status: ServiceStatus;
 
+  @ApiPropertyOptional({
+    description:
+      'Fecha hasta cuando el servicio está desactivado. Null = desactivado indefinidamente o no desactivado.',
+    example: '2026-07-15T11:00:00.000Z',
+    nullable: true,
+  })
+  declare disabledUntil: Date | null;
+
   @ApiProperty({ example: 'user-uuid-1234' })
   declare providerId: string;
 

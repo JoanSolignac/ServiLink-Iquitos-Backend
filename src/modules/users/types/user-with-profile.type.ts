@@ -5,6 +5,7 @@ export const USER_WITH_PROFILE_SELECT = {
   email: true,
   role: true,
   status: true,
+  bannedUntil: true,
   createdAt: true,
   updatedAt: true,
   profile: {

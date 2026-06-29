@@ -1,4 +1,4 @@
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { UserRole, UserStatus } from '@prisma/client';
 
 export class UserResponseDto {
@@ -27,6 +27,14 @@ export class UserResponseDto {
     example: UserStatus.ACTIVE,
   })
   declare status: UserStatus;
+
+  @ApiPropertyOptional({
+    description:
+      'Fecha hasta cuando está baneado. Null = ban indefinido o no baneado.',
+    example: '2026-07-15T11:00:00.000Z',
+    nullable: true,
+  })
+  declare bannedUntil: Date | null;
 
   @ApiProperty({
     description: 'Fecha de creación del usuario',

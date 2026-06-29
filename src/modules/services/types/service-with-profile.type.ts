@@ -9,6 +9,7 @@ const BASE_SERVICE_SELECT = {
   price: true,
   pricingUnit: true,
   status: true,
+  disabledUntil: true,
   averageRating: true,
   createdAt: true,
   user: {
