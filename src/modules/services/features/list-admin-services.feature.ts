@@ -16,7 +16,7 @@ export class ListAdminServicesFeature {
     const { skip, take } = resolvePagination(input.page, input.limit);
 
     const where: Prisma.ServiceWhereInput = {
-      status: ServiceStatus.REQUIRE_REVIEW,
+      status: { in: [ServiceStatus.REQUIRE_REVIEW, ServiceStatus.DISABLED] },
     };
 
     const [servicesUserProfile, total] = await this.prisma.$transaction([

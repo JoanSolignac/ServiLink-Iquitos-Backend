@@ -10,6 +10,7 @@ import { SuspendUserFeature } from './features/suspend-user.feature';
 import { RestoreUserFeature } from './features/restore-user.feature';
 import { ListUsersFeature } from './features/list-users.feature';
 import { CheckEmailExistsFeature } from './features/check-email-exists.feature';
+import { BanUserFeature } from './features/ban-user.feature';
 import { UsersController } from './users.controller';
 
 @Module({
@@ -26,6 +27,7 @@ import { UsersController } from './users.controller';
     RestoreUserFeature,
     ListUsersFeature,
     CheckEmailExistsFeature,
+    BanUserFeature,
   ],
   exports: [
     FindUserByIdFeature,

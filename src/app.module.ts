@@ -15,6 +15,7 @@ import { RatingsModule } from '@modules/ratings/ratings.module';
 import { FavoritesModule } from '@modules/favorites/favorites.module';
 import { PaymentsModule } from './modules/payments/payments.module';
 import { ReportsModule } from '@modules/reports/reports.module';
+import { SchedulerModule } from '@modules/scheduler/scheduler.module';
 
 @Module({
   imports: [
@@ -38,6 +39,7 @@ import { ReportsModule } from '@modules/reports/reports.module';
     FavoritesModule,
     PaymentsModule,
     ReportsModule,
+    SchedulerModule,
   ],
 })
 export class AppModule {}

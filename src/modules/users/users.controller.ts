@@ -25,6 +25,9 @@ import { UseAuth } from '@common/decorators/use-auth.decorator';
 import { ListUsersFeature } from './features/list-users.feature';
 import { ChangeUserRoleFeature } from './features/change-user-role.feature';
 import { CheckEmailExistsFeature } from './features/check-email-exists.feature';
+import { BanUserFeature } from './features/ban-user.feature';
+import { BanUserRequestDto } from './dtos/request/ban-user.request.dto';
+import { BanUserResponseDto } from './dtos/response/ban-user.response.dto';
 import { ListUsersQueryDto } from './dtos/request/list-users.query.dto';
 import { ChangeUserRoleRequestDto } from './dtos/request/change-user-role.request.dto';
 import { CheckEmailQueryDto } from './dtos/request/check-email.query.dto';
@@ -41,6 +44,7 @@ function toUserWithProfileResponse(
     email: user.email,
     role: user.role,
     status: user.status,
+    bannedUntil: user.bannedUntil,
     profileName: user.profile
       ? `${user.profile.firstName} ${user.profile.lastName}`
       : null,
@@ -58,6 +62,7 @@ export class UsersController {
     private readonly listUsersFeature: ListUsersFeature,
     private readonly changeUserRoleFeature: ChangeUserRoleFeature,
     private readonly checkEmailExistsFeature: CheckEmailExistsFeature,
+    private readonly banUserFeature: BanUserFeature,
   ) {}
 
   @Get('check-email')
@@ -103,6 +108,36 @@ export class UsersController {
         total: result.total,
       },
     };
+  }
+
+  @Patch(':id/ban')
+  @UseAuth(UserRole.MODERATOR, UserRole.ADMINISTRATOR)
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary:
+      'Banear un usuario temporal o indefinidamente (MODERATOR/ADMINISTRATOR)',
+  })
+  @ApiParam({
+    name: 'id',
+    description: 'ID del usuario a banear',
+    example: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890',
+  })
+  @ApiBody({ type: BanUserRequestDto })
+  @ApiResponse({ status: 200, type: BanUserResponseDto })
+  @ApiResponse({ status: 401, description: 'No autenticado' })
+  @ApiResponse({
+    status: 403,
+    description: 'Prohibido — requiere MODERATOR o ADMINISTRATOR',
+  })
+  @ApiResponse({ status: 404, description: 'Usuario no encontrado' })
+  @ApiResponse({ status: 409, description: 'El usuario ya está suspendido' })
+  async ban(
+    @Param('id') id: string,
+    @Body() dto: BanUserRequestDto,
+  ): Promise<BanUserResponseDto> {
+    const bannedUntil =
+      dto.bannedUntil != null ? new Date(dto.bannedUntil) : null;
+    return this.banUserFeature.execute({ userId: id, bannedUntil });
   }
 
   @Patch(':id/role')

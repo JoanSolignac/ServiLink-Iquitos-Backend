@@ -44,6 +44,8 @@ import { ListMyServicesFeature } from './features/list-my-services.feature';
 import { ListAdminServicesFeature } from './features/list-admin-services.feature';
 import { DeleteMyServiceFeature } from './features/delete-my-service.feature';
 import { DeleteServiceByAdminFeature } from './features/delete-service-by-admin.feature';
+import { DisableServiceFeature } from './features/disable-service.feature';
+import { DisableServiceRequestDto } from './dtos/request/disable-service.request.dto';
 import { PaginateQueryDto } from '@common/dtos/request/paginate-query.request.dto';
 import {
   ServiceWithProfileResponseDto,
@@ -84,6 +86,7 @@ function toResponseServiceWithProfile(
     price: service.price != null ? service.price.toNumber() : null,
     pricingUnit: service.pricingUnit ?? null,
     status: service.status,
+    disabledUntil: service.disabledUntil,
     providerId: service.user.id,
     providerName:
       `${service.user.profile!.firstName} ${service.user.profile!.lastName}`.trim(),
@@ -134,6 +137,7 @@ function toResponseMyService(myService: MyService): MyServiceResponseDto {
     price: myService.price != null ? myService.price.toNumber() : null,
     pricingUnit: myService.pricingUnit ?? null,
     status: myService.status,
+    disabledUntil: myService.disabledUntil,
   };
 }
 
@@ -154,6 +158,7 @@ export class ServicesController {
     private readonly findMyRatingFeature: FindMyRatingFeature,
     private readonly deleteMyServiceFeature: DeleteMyServiceFeature,
     private readonly deleteServiceByAdminFeature: DeleteServiceByAdminFeature,
+    private readonly disableServiceFeature: DisableServiceFeature,
   ) {}
 
   @Post()
@@ -497,6 +502,33 @@ export class ServicesController {
   @ApiResponse({ status: 404, description: 'Service not found' })
   async reject(@Param('id') id: string): Promise<void> {
     await this.rejectServiceFeature.execute(id);
+  }
+
+  @Patch(':id/disable')
+  @UseAuth(UserRole.MODERATOR, UserRole.ADMINISTRATOR)
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @ApiOperation({ summary: 'Disable a service (moderator/admin only)' })
+  @ApiParam({
+    name: 'id',
+    description: 'Service ID',
+    example: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890',
+  })
+  @ApiBody({ type: DisableServiceRequestDto })
+  @ApiResponse({ status: 204, description: 'Service disabled successfully' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({
+    status: 403,
+    description: 'Forbidden - requires MODERATOR or ADMINISTRATOR',
+  })
+  @ApiResponse({ status: 404, description: 'Service not found' })
+  @ApiResponse({ status: 409, description: 'Service already disabled' })
+  async disable(
+    @Param('id') id: string,
+    @Body() dto: DisableServiceRequestDto,
+  ): Promise<void> {
+    const disabledUntil =
+      dto.disabledUntil != null ? new Date(dto.disabledUntil) : null;
+    await this.disableServiceFeature.execute({ serviceId: id, disabledUntil });
   }
 
   @Delete(':id')

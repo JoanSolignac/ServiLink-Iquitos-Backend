@@ -22,6 +22,8 @@ model User {
   stripeCustomerId     String? @unique
   stripeSubscriptionId String? @unique
 
+  bannedUntil DateTime?
+
   authIdentities   AuthIdentity[]
   devices          Device[]
   profile          Profile?
@@ -101,6 +103,7 @@ model Service {
   price         Decimal?
   pricingUnit   String?
   status        ServiceStatus
+  disabledUntil DateTime?
   keywords      String[]
   imageUrls     String[]      @default([])
   averageRating Float         @default(0)
@@ -121,6 +124,7 @@ enum ServiceStatus {
   REQUIRE_REVIEW
   APPROVED
   REJECTED
+  DISABLED
 }
 
 model Rating {

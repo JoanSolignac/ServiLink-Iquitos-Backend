@@ -6,6 +6,8 @@ import { RatingCreatedHandler } from '@modules/notifications/handlers/rating/rat
 import { ReportCreatedHandler } from '@modules/notifications/handlers/report/report-created.handler';
 import { ReportReviewedHandler } from '@modules/notifications/handlers/report/report-reviewed.handler';
 import { UserReportThresholdReachedHandler } from '@modules/notifications/handlers/report/user-report-threshold-reached.handler';
+import { UserBannedHandler } from '@modules/notifications/handlers/user/user-banned.handler';
+import { ServiceDisabledHandler } from '@modules/notifications/handlers/service/service-disabled.handler';
 import { BrevoEmailProvider } from '@modules/notifications/providers/brevo-email.provider';
 import { FirebasePushProvider } from '@modules/notifications/providers/firebase-push.provider';
 import { EmailSendService } from '@modules/notifications/services/email-send.service';
@@ -27,6 +29,9 @@ import { NotificationPushService } from '@modules/notifications/services/notific
     ReportCreatedHandler,
     ReportReviewedHandler,
     UserReportThresholdReachedHandler,
+    // Moderación
+    UserBannedHandler,
+    ServiceDisabledHandler,
   ],
 })
 export class NotificationsModule {}

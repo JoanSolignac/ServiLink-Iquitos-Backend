@@ -12,6 +12,7 @@ import { ListAdminServicesFeature } from './features/list-admin-services.feature
 import { FindMyRatingFeature } from '@modules/ratings/features/find-my-rating.feature';
 import { DeleteMyServiceFeature } from './features/delete-my-service.feature';
 import { DeleteServiceByAdminFeature } from './features/delete-service-by-admin.feature';
+import { DisableServiceFeature } from './features/disable-service.feature';
 
 @Module({
   imports: [PrismaModule],
@@ -28,6 +29,7 @@ import { DeleteServiceByAdminFeature } from './features/delete-service-by-admin.
     FindMyRatingFeature,
     DeleteMyServiceFeature,
     DeleteServiceByAdminFeature,
+    DisableServiceFeature,
   ],
 })
 export class ServicesModule {}
