@@ -22,7 +22,7 @@ export class CreateUserReportFeature {
     reporterId: string,
     targetUserId: string,
     subject: string,
-    description: string,
+    description: string | undefined,
   ): Promise<void> {
     const target = await this.prisma.user.findUnique({
       where: { id: targetUserId },
@@ -51,7 +51,7 @@ export class CreateUserReportFeature {
         reporterId,
         targetUserId,
         subject,
-        description,
+        description: description ?? '',
         typeReport: 'USER',
         status: 'PENDING',
       },

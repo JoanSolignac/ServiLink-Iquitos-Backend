@@ -22,7 +22,7 @@ export class CreateServiceReportFeature {
     reporterId: string,
     serviceId: string,
     subject: string,
-    description: string,
+    description: string | undefined,
   ): Promise<void> {
     const service = await this.prisma.service.findUnique({
       where: { id: serviceId },
@@ -51,7 +51,7 @@ export class CreateServiceReportFeature {
         reporterId,
         serviceId,
         subject,
-        description,
+        description: description ?? '',
         typeReport: 'SERVICE',
         status: 'PENDING',
       },
