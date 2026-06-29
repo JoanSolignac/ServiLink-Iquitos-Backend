@@ -1,5 +1,5 @@
-import { ApiProperty } from '@nestjs/swagger';
-import { IsNotEmpty, IsString, MaxLength } from 'class-validator';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { IsNotEmpty, IsOptional, IsString, MaxLength } from 'class-validator';
 
 export class CreateReportRequestDto {
   @ApiProperty({ example: 'Servicio fraudulento' })
@@ -8,11 +8,11 @@ export class CreateReportRequestDto {
   @MaxLength(150)
   subject: string;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     example: 'El proveedor no cumplió con lo acordado y desapareció.',
   })
+  @IsOptional()
   @IsString()
-  @IsNotEmpty()
   @MaxLength(1000)
-  description: string;
+  description?: string;
 }
