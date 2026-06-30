@@ -33,10 +33,12 @@ export class AuthController {
     return {
       id: authCurrentUser.id,
       role: authCurrentUser.role,
+      status: authCurrentUser.status,
       email: authCurrentUser.email,
       hasProfile: authCurrentUser.hasProfile,
       emailVerified: authCurrentUser.emailVerified,
       isPremium: authCurrentUser.isPremium,
+      bannedUntil: authCurrentUser.bannedUntil,
     };
   }
 
