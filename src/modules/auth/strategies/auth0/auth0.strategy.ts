@@ -8,8 +8,6 @@ import { AuthCurrentUser } from '@common/interfaces/auth-current-user.interface'
 import { Injectable, Logger, UnauthorizedException } from '@nestjs/common';
 import { FindProfileByUserIdFeature } from '../../../profiles/features/find-profile-by-user-id.feature';
 import { ProfileNotFoundException } from '../../../profiles/exceptions/profile-not-found.exception';
-import { UserStatus } from '@prisma/client';
-import { UserSuspendedException } from '../../../users/exceptions/user-suspended.exception';
 
 @Injectable()
 export class Auth0Strategy extends PassportStrategy(Strategy, 'auth0') {
@@ -52,10 +50,6 @@ export class Auth0Strategy extends PassportStrategy(Strategy, 'auth0') {
     if (!user.email) {
       this.logger.warn(`User without email found: id=${user.id}`);
       throw new UnauthorizedException();
-    }
-
-    if (user.status === UserStatus.SUSPENDED) {
-      throw new UserSuspendedException();
     }
 
     let hasProfile = false;
