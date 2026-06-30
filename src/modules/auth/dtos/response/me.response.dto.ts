@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { UserRole } from '@prisma/client';
+import { UserRole, UserStatus } from '@prisma/client';
 
 export class MeResponseDto {
   @ApiProperty({ description: 'User ID', example: 'auth0|123456789' })
@@ -11,6 +11,13 @@ export class MeResponseDto {
     example: UserRole.USER,
   })
   declare role: UserRole;
+
+  @ApiProperty({
+    description: 'User account status',
+    enum: UserStatus,
+    example: UserStatus.ACTIVE,
+  })
+  declare status: UserStatus;
 
   @ApiProperty({ description: 'User email', example: 'user@example.com' })
   declare email: string;
@@ -32,4 +39,11 @@ export class MeResponseDto {
     example: false,
   })
   declare isPremium: boolean;
+
+  @ApiProperty({
+    description: 'Date until which the user is banned, or null if not banned',
+    example: null,
+    nullable: true,
+  })
+  declare bannedUntil: Date | null;
 }
