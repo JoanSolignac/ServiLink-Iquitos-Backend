@@ -1,0 +1,185 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id     String     @id @default(uuid())
+  email  String     @unique
+  role   UserRole
+  status UserStatus
+
+  // Subscription status fields
+  isPremium            Boolean @default(false)
+  stripeCustomerId     String? @unique
+  stripeSubscriptionId String? @unique
+
+  bannedUntil DateTime?
+
+  authIdentities   AuthIdentity[]
+  devices          Device[]
+  profile          Profile?
+  services         Service[]
+  ratings          Rating[]   @relation("CustomerRatings")
+  favorites        Favorite[]
+  reportsAsReporter Report[]  @relation("ReporterReports")
+  reportsAsTarget  Report[]   @relation("TargetUserReports")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("users")
+}
+
+model Device {
+  id         String   @id
+  userId     String
+  fcmToken   String
+  lastSeenAt DateTime
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  user      User     @relation(fields: [userId], references: [id])
+}
+
+model AuthIdentity {
+  id         String @id @default(uuid())
+  userId     String
+  provider   String
+  providerId String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("auth_identities")
+}
+
+model Profile {
+  userId            String   @id
+  firstName         String
+  lastName          String
+  birthDate         DateTime
+  dni               String   @unique
+  profilePictureUrl String?
+  bio               String?
+  phone             String?  @unique
+  address           String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("profiles")
+}
+
+enum UserRole {
+  USER
+  MODERATOR
+  ADMINISTRATOR
+}
+
+enum UserStatus {
+  ACTIVE
+  INACTIVE
+  SUSPENDED
+}
+
+model Service {
+  id            String        @id @default(uuid())
+  userId        String
+  title         String
+  description   String
+  price         Decimal?
+  pricingUnit   String?
+  status        ServiceStatus
+  disabledUntil DateTime?
+  keywords      String[]
+  imageUrls     String[]      @default([])
+  averageRating Float         @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  ratings   Rating[]
+  favorites Favorite[]
+  reports   Report[]
+
+  @@map("services")
+}
+
+enum ServiceStatus {
+  PENDING
+  REQUIRE_REVIEW
+  APPROVED
+  REJECTED
+  DISABLED
+}
+
+model Rating {
+  id         String   @id @default(uuid())
+  serviceId  String
+  customerId String
+  score      Int
+  comment    String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  service  Service @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+  customer User    @relation("CustomerRatings", fields: [customerId], references: [id], onDelete: Cascade)
+
+  @@unique([serviceId, customerId])
+  @@map("ratings")
+}
+
+model Favorite {
+  userId    String
+  serviceId String
+  createdAt DateTime @default(now())
+
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  service Service @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+
+  @@id([userId, serviceId])
+  @@map("favorites")
+}
+
+enum ReportStatus {
+  PENDING
+  REVIEWED
+}
+
+enum ReportType {
+  SERVICE
+  USER
+}
+
+model Report {
+  id           String       @id @default(uuid())
+  reporterId   String
+  serviceId    String?
+  targetUserId String?
+  subject      String
+  description  String
+  status       ReportStatus @default(PENDING)
+  typeReport   ReportType
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+
+  reporter   User     @relation("ReporterReports", fields: [reporterId], references: [id], onDelete: Cascade)
+  service    Service? @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+  targetUser User?    @relation("TargetUserReports", fields: [targetUserId], references: [id], onDelete: Cascade)
+
+  @@map("reports")
+}
